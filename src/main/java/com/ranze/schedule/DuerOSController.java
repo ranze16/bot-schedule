@@ -1,6 +1,8 @@
 package com.ranze.schedule;
 
+import com.ranze.schedule.config.BeanConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,13 +15,16 @@ import java.io.IOException;
 @Controller
 @RequestMapping("/schedule")
 public class DuerOSController {
+    @Autowired
+    BeanConfig beanConfig;
 
     @PostMapping("/dueros")
+
     public void request(HttpServletRequest request, HttpServletResponse response) throws IOException {
         log.info("Receive request: {}", request);
         Bot bot;
         try {
-            bot = new Bot(request);
+            bot = beanConfig.bot(request);
             // 线下调试时，可以关闭签名验证
             // bot.enableVerify();
             bot.disableVerify();
@@ -37,7 +42,7 @@ public class DuerOSController {
             // bot.enableVerify();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Bot exception: {}", e.getMessage());
             response.getWriter().append(e.toString());
         }
     }
