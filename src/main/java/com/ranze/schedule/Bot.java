@@ -11,6 +11,7 @@ import com.ranze.schedule.config.BusinessConfig;
 import com.ranze.schedule.pojo.UserInfo;
 import com.ranze.schedule.service.UserInfoService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,30 +34,21 @@ public class Bot extends BaseBot {
     protected Response onLaunch(LaunchRequest launchRequest) {
         log.info("Launch request, req id = {}, user id = {}", launchRequest.getRequestId(), getUserId());
 
-        TextCard textCard = new TextCard("宝贝日程");
-        textCard.addCueWord("创建宝贝的日程");
+        TextCard textCard = new TextCard("欢迎来到宝贝日程");
+        OutputSpeech outputSpeech = null;
 
-        // 新建返回的语音内容
-        OutputSpeech outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.PlainText, "欢迎来到宝贝日程," +
-                " 告诉我你的名字吧");
+        UserInfo userInfo = getUserInfo(getUserId());
+        if (userInfo == null) {
+            outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.PlainText, "欢迎来到宝贝日程，先告诉我你的名字吧");
+            setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_SET_NAME);
+
+        } else {
+            outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.PlainText,
+                    userInfo.getNickName() + "你好, 你是要打卡还是创建日程呢");
+        }
 
         // 构造返回的Response
         return new Response(outputSpeech, textCard);
-    }
-
-    @Override
-    protected Response onInent(IntentRequest intentRequest) {
-        String intentName = intentRequest.getIntentName();
-        log.info("Intent request, req id = {}, user id = {}, intent = {}", intentRequest.getRequestId(), getUserId(),
-                intentName);
-        Response response = null;
-        String createBabyNameIntent = config.getCreateBabyNameIntent();
-        System.out.println("create baby name intent = " + createBabyNameIntent);
-        System.out.println("create_baby_name".equals(createBabyNameIntent));
-        if (intentName.equals("create_baby_name")) {
-            response = handleCreateBabyNameIntent();
-        }
-        return response;
     }
 
     @Override
@@ -66,17 +58,59 @@ public class Bot extends BaseBot {
         return new Response(outputSpeech);
     }
 
-    private Response handleCreateBabyNameIntent() {
+
+    @Override
+    protected Response onInent(IntentRequest intentRequest) {
+        String intentName = intentRequest.getIntentName();
+        log.info("Intent request, user id = {}, intent = {}, raw word = {}", intentRequest.getRequestId(), getUserId(),
+                intentName, intentRequest.getQuery());
+
+        Response response = null;
+
+        String createBabyNameIntent = config.getCreateBabyNameIntent();
+        System.out.println("create baby name intent = " + createBabyNameIntent);
+        System.out.println("create_baby_name".equals(createBabyNameIntent));
+
+        switch (intentName) {
+            case "create_baby_name":
+                response = handleCreateBabyNameIntent(null);
+                break;
+            case Cons.DEFAULT_INTENT:
+                response = handleDefaultIntent(intentRequest);
+                break;
+            default:
+                response = handleDefaultIntent(intentRequest);
+                break;
+        }
+
+        return response == null ? onDefaultEvent() : response;
+    }
+
+    private Response handleDefaultIntent(IntentRequest intentRequest) {
+        // 默认意图
+        log.info("Handle default intent");
+
+        Response response = null;
+
+        String action = getSessionAttribute(Cons.ATTRI_KEY_ACTION);
+        if (action.equals(Cons.ATTRI_SET_NAME)) {
+            response = handleCreateBabyNameIntent(intentRequest.getQuery().getOriginal());
+            setSessionAttribute(Cons.ATTRI_KEY_ACTION, "");
+        }
+        return response;
+    }
+
+    private Response handleCreateBabyNameIntent(String nickName) {
         log.info("Handle create baby name intent");
 
         OutputSpeech outputSpeech = null;
         TextCard textCard = new TextCard();
 
-        UserInfo userInfo = userInfoService.getUserInfo(getUserId());
+        UserInfo userInfo = getUserInfo(getUserId());
         if (userInfo != null) {
             outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.PlainText, "你已经有名字啦");
         } else {
-            String nickName = getSlot("sys.wildcard-slot");
+            nickName = Strings.isEmpty(nickName) ? getSlot("sys.wildcard-slot") : nickName;
             log.info("Nick name: {}", nickName);
             userInfoService.insertUserInfo(getUserId(), nickName);
 
@@ -86,6 +120,10 @@ public class Bot extends BaseBot {
                     "好的, " + nickName + ", 你现在可以创建你的计划了");
         }
         return new Response(outputSpeech, textCard);
+    }
+
+    private UserInfo getUserInfo(String userId) {
+        return userInfoService.getUserInfo(userId);
     }
 
 }

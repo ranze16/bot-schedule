@@ -25,6 +25,7 @@ public class DuerOSController {
         Bot bot;
         try {
             bot = beanConfig.bot(request);
+            System.out.println(bot.toString());
             // 线下调试时，可以关闭签名验证
             // bot.enableVerify();
             bot.disableVerify();
