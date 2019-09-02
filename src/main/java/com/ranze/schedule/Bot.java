@@ -75,6 +75,9 @@ public class Bot extends BaseBot {
             case "create_baby_name":
                 response = handleCreateBabyNameIntent(null);
                 break;
+            case "create_baby_schedule":
+                response = handleCreateScheduleIntent();
+                break;
             case Cons.DEFAULT_INTENT:
                 response = handleDefaultIntent(intentRequest);
                 break;
@@ -84,6 +87,12 @@ public class Bot extends BaseBot {
         }
 
         return response == null ? onDefaultEvent() : response;
+    }
+
+    private Response handleCreateScheduleIntent() {
+        Response response = null;
+//        getSlot("")
+        return response;
     }
 
     private Response handleDefaultIntent(IntentRequest intentRequest) {
