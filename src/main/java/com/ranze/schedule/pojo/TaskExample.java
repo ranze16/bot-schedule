@@ -897,6 +897,76 @@ public class TaskExample {
             addCriterion("content not between", value1, value2, "content");
             return (Criteria) this;
         }
+
+        public Criteria andAdditionIsNull() {
+            addCriterion("addition is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionIsNotNull() {
+            addCriterion("addition is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionEqualTo(String value) {
+            addCriterion("addition =", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionNotEqualTo(String value) {
+            addCriterion("addition <>", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionGreaterThan(String value) {
+            addCriterion("addition >", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionGreaterThanOrEqualTo(String value) {
+            addCriterion("addition >=", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionLessThan(String value) {
+            addCriterion("addition <", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionLessThanOrEqualTo(String value) {
+            addCriterion("addition <=", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionLike(String value) {
+            addCriterion("addition like", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionNotLike(String value) {
+            addCriterion("addition not like", value, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionIn(List<String> values) {
+            addCriterion("addition in", values, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionNotIn(List<String> values) {
+            addCriterion("addition not in", values, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionBetween(String value1, String value2) {
+            addCriterion("addition between", value1, value2, "addition");
+            return (Criteria) this;
+        }
+
+        public Criteria andAdditionNotBetween(String value1, String value2) {
+            addCriterion("addition not between", value1, value2, "addition");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

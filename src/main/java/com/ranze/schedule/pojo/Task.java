@@ -1,7 +1,10 @@
 package com.ranze.schedule.pojo;
 
+import lombok.ToString;
+
 import java.util.Date;
 
+@ToString
 public class Task {
     private Long id;
 
@@ -26,6 +29,8 @@ public class Task {
     private Date timeInDay;
 
     private String content;
+
+    private String addition;
 
     public Long getId() {
         return id;
@@ -121,5 +126,13 @@ public class Task {
 
     public void setContent(String content) {
         this.content = content == null ? null : content.trim();
+    }
+
+    public String getAddition() {
+        return addition;
+    }
+
+    public void setAddition(String addition) {
+        this.addition = addition == null ? null : addition.trim();
     }
 }

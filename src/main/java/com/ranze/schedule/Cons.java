@@ -12,4 +12,9 @@ public final class Cons {
 
     public static final byte BIND_MASTER = 1;
     public static final byte BIND_ATTACHED = 2;
+
+    public static final long HALF_HOUR_MILLIONS = 3600 / 2 * 1000;
+    public static final long ONE_HOUR_MILLIONS = HALF_HOUR_MILLIONS * 2;
+    public static final long ONE_DAY_MILLIONS = ONE_HOUR_MILLIONS * 24;
+
 }

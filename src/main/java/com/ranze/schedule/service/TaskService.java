@@ -1,16 +1,27 @@
 package com.ranze.schedule.service;
 
 import com.ranze.schedule.Cons;
+import com.ranze.schedule.mapper.ClockInMapper;
 import com.ranze.schedule.mapper.TaskMapper;
+import com.ranze.schedule.pojo.ClockIn;
 import com.ranze.schedule.pojo.Task;
+import com.ranze.schedule.pojo.TaskExample;
 import com.ranze.schedule.util.UniqueIDUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -20,6 +31,9 @@ public class TaskService {
 
     @Autowired
     TaskMapper taskMapper;
+
+    @Autowired
+    ClockInMapper clockInMapper;
 
     public boolean insertOnceTask(String userId, Timestamp singleTime, String content, long bindTaskId) {
         if (bindTaskId > 0) {
@@ -104,6 +118,102 @@ public class TaskService {
         task.setContent(content);
 
         return taskMapper.insertSelective(task) == 1;
+    }
+
+    public List<Task> selectCurrentNearbyTasks(String userId, long earlierTimeInMillions) {
+        List<Task> ret = new ArrayList<>();
+
+        List<Task> tasks = selectTodayTasks(userId);
+
+        long zeroMillions = LocalDateTime.of(LocalDate.now(), LocalTime.MIN)
+                .toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        long curToZeroMillions = System.currentTimeMillis() - zeroMillions;
+
+        // 任务的执行时间必须在 [judgeStartTime, curToZeroMillions] 之间, 如果 judgeStartTime 小于 0, 则置为 0
+        long judgeStartTime = curToZeroMillions - earlierTimeInMillions;
+        if (judgeStartTime < 0) {
+            judgeStartTime = 0;
+        }
+
+        long finalJudgeStartTime = judgeStartTime;
+        tasks.forEach(task -> {
+            // 单次任务根据 singleTime 判断, 长期任务和时间段任务根据 timeInDay 判断
+            if (task.getType() == Cons.TASK_ONCE) {
+                long taskTime = task.getSingleTime().getTime() - zeroMillions;
+                if (taskTime >= finalJudgeStartTime && taskTime <= curToZeroMillions) {
+                    ret.add(task);
+                }
+
+            } else {
+                long taskTime = task.getTimeInDay().getTime();
+                if (taskTime >= finalJudgeStartTime && taskTime <= curToZeroMillions) {
+                    ret.add(task);
+                }
+            }
+
+        });
+        return ret;
+    }
+
+    public List<Task> selectTodayTasks(String userId) {
+        TaskExample taskExample = new TaskExample();
+
+        // 一段时间任务
+        Date today = new Date(System.currentTimeMillis());
+        taskExample.or()
+                .andUserIdEqualTo(userId)
+                .andStartTimeLessThanOrEqualTo(today)
+                .andEndTimeGreaterThanOrEqualTo(today);
+
+        long zeroMillions = LocalDateTime.of(LocalDate.now(), LocalTime.MIN)
+                .toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
+        Date todayZero = new Date(zeroMillions);
+        Date tomorrowZero = new Date(zeroMillions + 3600 * 1000 * 24);
+
+        // 单次任务
+        taskExample.or()
+                .andUserIdEqualTo(userId)
+                .andSingleTimeBetween(todayZero, tomorrowZero);
+
+        // 长期任务
+        taskExample.or()
+                .andUserIdEqualTo(userId)
+                .andTypeEqualTo(Cons.TASK_LONG);
+
+        return taskMapper.selectByExample(taskExample);
+    }
+
+    public List<Task> selectAllTask(String userId) {
+        TaskExample taskExample = new TaskExample();
+        TaskExample.Criteria criteria = taskExample.createCriteria();
+        criteria.andUserIdEqualTo(userId);
+
+        return taskMapper.selectByExample(taskExample);
+    }
+
+    public boolean deleteTask(long taskId) {
+        return taskMapper.deleteByPrimaryKey(taskId) == 1;
+    }
+
+    public boolean insertClockInToday(String userId, long taskId) {
+        return insertClockIn(userId, taskId, new Date(System.currentTimeMillis()));
+    }
+
+    public boolean insertClockIn(String userId, long taskId, Date date) {
+        ClockIn clockIn = new ClockIn();
+        clockIn.setId(uniqueIDUtil.nextId());
+        clockIn.setUserId(userId);
+        clockIn.setTaskId(taskId);
+        clockIn.setOpDate(date);
+
+        int ret = 0;
+        try {
+            ret = clockInMapper.insertSelective(clockIn);
+        } catch (DuplicateKeyException e) {
+            log.info("重复插入打卡记录");
+        }
+
+        return ret == 1;
     }
 
 }

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ranze.schedule.mapper.TaskMapper">
   <resultMap id="BaseResultMap" type="com.ranze.schedule.pojo.Task">
-    <result column="id" jdbcType="BIGINT" property="id" />
+    <id column="id" jdbcType="BIGINT" property="id" />
     <result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate" />
     <result column="gmt_modified" jdbcType="TIMESTAMP" property="gmtModified" />
     <result column="user_id" jdbcType="VARCHAR" property="userId" />
@@ -14,6 +14,7 @@
     <result column="single_time" jdbcType="TIMESTAMP" property="singleTime" />
     <result column="time_in_day" jdbcType="TIME" property="timeInDay" />
     <result column="content" jdbcType="VARCHAR" property="content" />
+    <result column="addition" jdbcType="VARCHAR" property="addition" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -75,7 +76,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, gmt_create, gmt_modified, user_id, bind_type, bind_task_id, type, start_time, 
-    end_time, single_time, time_in_day, content
+    end_time, single_time, time_in_day, content, addition
   </sql>
   <select id="selectByExample" parameterType="com.ranze.schedule.pojo.TaskExample" resultMap="BaseResultMap">
     select
@@ -91,6 +92,16 @@
       order by ${orderByClause}
     </if>
   </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from task
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from task
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
   <delete id="deleteByExample" parameterType="com.ranze.schedule.pojo.TaskExample">
     delete from task
     <if test="_parameter != null">
@@ -101,13 +112,13 @@
     insert into task (id, gmt_create, gmt_modified, 
       user_id, bind_type, bind_task_id, 
       type, start_time, end_time, 
-      single_time, time_in_day, content
-      )
+      single_time, time_in_day, content, 
+      addition)
     values (#{id,jdbcType=BIGINT}, #{gmtCreate,jdbcType=TIMESTAMP}, #{gmtModified,jdbcType=TIMESTAMP}, 
       #{userId,jdbcType=VARCHAR}, #{bindType,jdbcType=TINYINT}, #{bindTaskId,jdbcType=BIGINT}, 
       #{type,jdbcType=TINYINT}, #{startTime,jdbcType=DATE}, #{endTime,jdbcType=DATE}, 
-      #{singleTime,jdbcType=TIMESTAMP}, #{timeInDay,jdbcType=TIME}, #{content,jdbcType=VARCHAR}
-      )
+      #{singleTime,jdbcType=TIMESTAMP}, #{timeInDay,jdbcType=TIME}, #{content,jdbcType=VARCHAR}, 
+      #{addition,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.ranze.schedule.pojo.Task">
     insert into task
@@ -148,6 +159,9 @@
       <if test="content != null">
         content,
       </if>
+      <if test="addition != null">
+        addition,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="id != null">
@@ -185,6 +199,9 @@
       </if>
       <if test="content != null">
         #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="addition != null">
+        #{addition,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -233,6 +250,9 @@
       <if test="record.content != null">
         content = #{record.content,jdbcType=VARCHAR},
       </if>
+      <if test="record.addition != null">
+        addition = #{record.addition,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -251,9 +271,68 @@
       end_time = #{record.endTime,jdbcType=DATE},
       single_time = #{record.singleTime,jdbcType=TIMESTAMP},
       time_in_day = #{record.timeInDay,jdbcType=TIME},
-      content = #{record.content,jdbcType=VARCHAR}
+      content = #{record.content,jdbcType=VARCHAR},
+      addition = #{record.addition,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.ranze.schedule.pojo.Task">
+    update task
+    <set>
+      <if test="gmtCreate != null">
+        gmt_create = #{gmtCreate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="gmtModified != null">
+        gmt_modified = #{gmtModified,jdbcType=TIMESTAMP},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="bindType != null">
+        bind_type = #{bindType,jdbcType=TINYINT},
+      </if>
+      <if test="bindTaskId != null">
+        bind_task_id = #{bindTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=TINYINT},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=DATE},
+      </if>
+      <if test="endTime != null">
+        end_time = #{endTime,jdbcType=DATE},
+      </if>
+      <if test="singleTime != null">
+        single_time = #{singleTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="timeInDay != null">
+        time_in_day = #{timeInDay,jdbcType=TIME},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
+      </if>
+      <if test="addition != null">
+        addition = #{addition,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.ranze.schedule.pojo.Task">
+    update task
+    set gmt_create = #{gmtCreate,jdbcType=TIMESTAMP},
+      gmt_modified = #{gmtModified,jdbcType=TIMESTAMP},
+      user_id = #{userId,jdbcType=VARCHAR},
+      bind_type = #{bindType,jdbcType=TINYINT},
+      bind_task_id = #{bindTaskId,jdbcType=BIGINT},
+      type = #{type,jdbcType=TINYINT},
+      start_time = #{startTime,jdbcType=DATE},
+      end_time = #{endTime,jdbcType=DATE},
+      single_time = #{singleTime,jdbcType=TIMESTAMP},
+      time_in_day = #{timeInDay,jdbcType=TIME},
+      content = #{content,jdbcType=VARCHAR},
+      addition = #{addition,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
