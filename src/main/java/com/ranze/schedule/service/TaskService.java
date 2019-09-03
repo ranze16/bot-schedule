@@ -82,33 +82,23 @@ public class TaskService {
 
         if (bindTaskId > 0) {
             task.setBindTaskId(bindTaskId);
-        } else {
-            task.setBindTaskId(-1L);
         }
 
         task.setType(type);
 
         if (startTime != null) {
             task.setStartTime(startTime);
-        } else {
-            task.setStartTime(new Date(0));
         }
         if (endTime != null) {
             task.setEndTime(endTime);
-        } else {
-            task.setEndTime(new Date(0));
         }
 
         if (singleTime != null) {
             task.setSingleTime(singleTime);
-        } else {
-            task.setSingleTime(new Timestamp(0));
         }
 
         if (timeInDay != null) {
             task.setTimeInDay(timeInDay);
-        } else {
-            task.setTimeInDay(new Time(0));
         }
 
         task.setContent(content);
