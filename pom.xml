@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.ranze</groupId>
-    <artifactId>schedule</artifactId>
+    <artifactId>bot-schedule</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Schedule</name>
-    <description>Schedule management for baby as a skill in DuerOS</description>
+    <name>bot-schedule</name>
+    <description>Schedule management as a skill in DuerOS</description>
 
     <properties>
         <java.version>1.8</java.version>
