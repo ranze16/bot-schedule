@@ -21,35 +21,32 @@ public class TaskServiceTest {
 
     private String userId = "test_task";
     private String content = "背单词";
+    private String bindUserBaby = "宝贝";
 
     @Test
 
     public void insertOnceTask() {
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        boolean success = taskService.insertOnceTask(userId, timestamp, content, -1);
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis() + Cons.ONE_DAY_MILLIONS * 2);
+        boolean success = taskService.insertOnceTask(userId, bindUserBaby, timestamp, content, -1);
         assert success;
     }
 
     @Test
     public void insertIntervalTask() {
-        Date startTime = new Date(System.currentTimeMillis());
+        Date startTime = new Date(System.currentTimeMillis() + Cons.ONE_DAY_MILLIONS);
         Date endTime = new Date(startTime.getTime() + 3600 * 1000 * 24 * 10);
         Time timeInDay = new Time(System.currentTimeMillis() + 3600 * 1000);
-        boolean success = taskService.insertIntervalTask(userId, startTime, endTime, timeInDay, content, -1);
+        boolean success = taskService.insertIntervalTask(userId, bindUserBaby, startTime, endTime,
+                Cons.EXCLUDE_DATE_TYPE_ONLY_WEEKDAY, timeInDay, content, -1);
         assert success;
     }
 
     @Test
     public void insertLongTermTask() {
         Time timeInDay = new Time(System.currentTimeMillis() + 3600 * 1000 * 2);
-        boolean success = taskService.insertLongTermTask(userId, timeInDay, content, -1);
+        boolean success = taskService.insertLongTermTask(userId, bindUserBaby, Cons.EXCLUDE_DATE_TYPE_NONE,
+                timeInDay, content, -1);
         assert success;
-    }
-
-    @Test
-    public void selectCurrentTasks() {
-        List<Task> tasks = taskService.selectTodayTasks(userId);
-        System.out.println(tasks);
     }
 
     @Test
@@ -60,17 +57,36 @@ public class TaskServiceTest {
 
     @Test
     public void deleteTask() {
-        taskService.deleteTask(618599960518201344L);
+        taskService.deleteTask(618942933227409408L);
     }
 
     @Test
     public void insertClockInToday() {
-        taskService.insertClockInToday(userId, 618599218768121856L);
+        taskService.insertClockInToday(userId, 618943308869275648L);
     }
 
     @Test
     public void selectCurrentNearbyTasks() {
         List<Task> tasks = taskService.selectCurrentNearbyTasks(userId, Cons.ONE_HOUR_MILLIONS);
+        System.out.println(tasks);
+    }
+
+    @Test
+    public void selectTodayTasks() {
+        List<Task> tasks = taskService.selectTodayTasks(userId);
+        System.out.println(tasks);
+    }
+
+    @Test
+    public void markTask() {
+        boolean success = taskService.markTask(618942694735089664L);
+        assert success;
+
+    }
+
+    @Test
+    public void selectMarkedTask() {
+        List<Task> tasks = taskService.selectMarkedTask(userId);
         System.out.println(tasks);
     }
 }

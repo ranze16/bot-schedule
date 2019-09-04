@@ -16,21 +16,27 @@ public class Task {
 
     private Byte bindType;
 
+    private String bindUser;
+
     private Long bindTaskId;
 
     private Byte type;
 
-    private Date startTime;
+    private Date startDate;
 
-    private Date endTime;
+    private Date endDate;
 
-    private Date singleTime;
+    private Byte excludeDateType;
+
+    private Date singleDateTime;
 
     private Date timeInDay;
 
     private String content;
 
     private String addition;
+
+    private Byte marked;
 
     public Long getId() {
         return id;
@@ -72,6 +78,14 @@ public class Task {
         this.bindType = bindType;
     }
 
+    public String getBindUser() {
+        return bindUser;
+    }
+
+    public void setBindUser(String bindUser) {
+        this.bindUser = bindUser == null ? null : bindUser.trim();
+    }
+
     public Long getBindTaskId() {
         return bindTaskId;
     }
@@ -88,28 +102,36 @@ public class Task {
         this.type = type;
     }
 
-    public Date getStartTime() {
-        return startTime;
+    public Date getStartDate() {
+        return startDate;
     }
 
-    public void setStartTime(Date startTime) {
-        this.startTime = startTime;
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
-    public Date getEndTime() {
-        return endTime;
+    public Date getEndDate() {
+        return endDate;
     }
 
-    public void setEndTime(Date endTime) {
-        this.endTime = endTime;
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 
-    public Date getSingleTime() {
-        return singleTime;
+    public Byte getExcludeDateType() {
+        return excludeDateType;
     }
 
-    public void setSingleTime(Date singleTime) {
-        this.singleTime = singleTime;
+    public void setExcludeDateType(Byte excludeDateType) {
+        this.excludeDateType = excludeDateType;
+    }
+
+    public Date getSingleDateTime() {
+        return singleDateTime;
+    }
+
+    public void setSingleDateTime(Date singleDateTime) {
+        this.singleDateTime = singleDateTime;
     }
 
     public Date getTimeInDay() {
@@ -134,5 +156,13 @@ public class Task {
 
     public void setAddition(String addition) {
         this.addition = addition == null ? null : addition.trim();
+    }
+
+    public Byte getMarked() {
+        return marked;
+    }
+
+    public void setMarked(Byte marked) {
+        this.marked = marked;
     }
 }

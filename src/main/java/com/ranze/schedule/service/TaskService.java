@@ -21,7 +21,6 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 @Service
 @Slf4j
@@ -35,34 +34,36 @@ public class TaskService {
     @Autowired
     ClockInMapper clockInMapper;
 
-    public boolean insertOnceTask(String userId, Timestamp singleTime, String content, long bindTaskId) {
+    public boolean insertOnceTask(String userId, String bindUser, Timestamp singleTime, String content, long bindTaskId) {
+        // 单次任务不会有排除日期的需求
         if (bindTaskId > 0) {
-            return insertTask(userId, Cons.BIND_ATTACHED, bindTaskId, Cons.TASK_ONCE,
-                    null, null, singleTime, null, content);
+            return insertTask(userId, Cons.BIND_ATTACHED, bindUser, bindTaskId, Cons.TASK_ONCE,
+                    null, null, Cons.EXCLUDE_DATE_TYPE_NONE, singleTime, null, content);
         } else {
-            return insertTask(userId, Cons.BIND_MASTER, -1, Cons.TASK_ONCE,
-                    null, null, singleTime, null, content);
+            return insertTask(userId, Cons.BIND_MASTER, bindUser, -1, Cons.TASK_ONCE,
+                    null, null, Cons.EXCLUDE_DATE_TYPE_NONE, singleTime, null, content);
         }
     }
 
-    public boolean insertIntervalTask(String userId, Date startTime, Date entTime, Time timeInDay,
-                                      String content, long bindTaskId) {
+    public boolean insertIntervalTask(String userId, String bindUser, Date startTime, Date entTime, byte excludeDateType,
+                                      Time timeInDay, String content, long bindTaskId) {
         if (bindTaskId > 0) {
-            return insertTask(userId, Cons.BIND_ATTACHED, bindTaskId, Cons.TASK_INTERVAL,
-                    startTime, entTime, null, timeInDay, content);
+            return insertTask(userId, Cons.BIND_ATTACHED, bindUser, bindTaskId, Cons.TASK_INTERVAL,
+                    startTime, entTime, excludeDateType, null, timeInDay, content);
         } else {
-            return insertTask(userId, Cons.BIND_MASTER, -1, Cons.TASK_INTERVAL,
-                    startTime, entTime, null, timeInDay, content);
+            return insertTask(userId, Cons.BIND_MASTER, bindUser, -1, Cons.TASK_INTERVAL,
+                    startTime, entTime, excludeDateType, null, timeInDay, content);
         }
     }
 
-    public boolean insertLongTermTask(String userId, Time timeInDay, String content, long bindTaskId) {
+    public boolean insertLongTermTask(String userId, String bindUser, byte excludeDateType,
+                                      Time timeInDay, String content, long bindTaskId) {
         if (bindTaskId > 0) {
-            return insertTask(userId, Cons.BIND_ATTACHED, bindTaskId, Cons.TASK_LONG,
-                    null, null, null, timeInDay, content);
+            return insertTask(userId, Cons.BIND_ATTACHED, bindUser, bindTaskId, Cons.TASK_LONG,
+                    null, null, excludeDateType, null, timeInDay, content);
         } else {
-            return insertTask(userId, Cons.BIND_MASTER, -1, Cons.TASK_LONG,
-                    null, null, null, timeInDay, content);
+            return insertTask(userId, Cons.BIND_MASTER, bindUser, -1, Cons.TASK_LONG,
+                    null, null, excludeDateType, null, timeInDay, content);
         }
 
     }
@@ -71,28 +72,31 @@ public class TaskService {
      * 创建任务
      * 任务分为主任务与附属任务，如果是附属任务，则需要设置 {@code bindTaskId}
      * <ul>
-     * <li>单次任务只设置 {@code singleTime}></li>
-     * <li>一段时间内任务设置 {@code startTime}, {@code endTime}, {@code timeInDay}></li>
+     * <li>单次任务只设置 {@code singleDateTime}></li>
+     * <li>一段时间内任务设置 {@code startDate}, {@code endDate}, {@code timeInDay}></li>
      * <li>长期任务只设置 {@code timeInDay}</li>
      * </ul>
      *
-     * @param userId     任务所属用户的 user id
-     * @param bindType   任务绑定类型，1 master, 2 attached
-     * @param bindTaskId 如果是 attached 任务, 这个参数表示绑定的任务的 id, 否则为 -1
-     * @param type       任务类型, 1 单次任务, 2 一段时间的任务 3 长期任务
-     * @param startTime  一段时间任务的开始日期
-     * @param endTime    一段时间任务的结束日期
-     * @param singleTime 单次任务的日期时间
-     * @param timeInDay  每天执行任务的时间点，如果是长期任务，则只设置这个时间
-     * @param content    任务的具体内容
+     * @param userId         任务所属用户的 user id
+     * @param bindType       任务绑定类型，1 master, 2 attached
+     * @param bindUser       任务绑定者的称呼，如宝贝或者妈妈等
+     * @param bindTaskId     如果是 attached 任务, 这个参数表示绑定的任务的 id, 否则为 -1
+     * @param type           任务类型, 1 单次任务, 2 一段时间的任务 3 长期任务
+     * @param startDate      一段时间任务的开始日期
+     * @param endDate        一段时间任务的结束日期
+     * @param singleDateTime 单次任务的日期时间
+     * @param timeInDay      每天执行任务的时间点，如果是长期任务，则只设置这个时间
+     * @param content        任务的具体内容
      * @return 成功返回 {@code true}， 失败返回 {@code false}
      */
-    public boolean insertTask(String userId, byte bindType, long bindTaskId, byte type, Date startTime, Date endTime,
-                              Timestamp singleTime, Time timeInDay, String content) {
+    public boolean insertTask(String userId, byte bindType, String bindUser, long bindTaskId, byte type,
+                              Date startDate, Date endDate, byte excludeDateType,
+                              Timestamp singleDateTime, Time timeInDay, String content) {
         Task task = new Task();
         task.setId(uniqueIDUtil.nextId());
         task.setUserId(userId);
         task.setBindType(bindType);
+        task.setBindUser(bindUser);
 
         if (bindTaskId > 0) {
             task.setBindTaskId(bindTaskId);
@@ -100,15 +104,17 @@ public class TaskService {
 
         task.setType(type);
 
-        if (startTime != null) {
-            task.setStartTime(startTime);
+        if (startDate != null) {
+            task.setStartDate(startDate);
         }
-        if (endTime != null) {
-            task.setEndTime(endTime);
+        if (endDate != null) {
+            task.setEndDate(endDate);
         }
 
-        if (singleTime != null) {
-            task.setSingleTime(singleTime);
+        task.setExcludeDateType(excludeDateType);
+
+        if (singleDateTime != null) {
+            task.setSingleDateTime(singleDateTime);
         }
 
         if (timeInDay != null) {
@@ -139,7 +145,7 @@ public class TaskService {
         tasks.forEach(task -> {
             // 单次任务根据 singleTime 判断, 长期任务和时间段任务根据 timeInDay 判断
             if (task.getType() == Cons.TASK_ONCE) {
-                long taskTime = task.getSingleTime().getTime() - zeroMillions;
+                long taskTime = task.getSingleDateTime().getTime() - zeroMillions;
                 if (taskTime >= finalJudgeStartTime && taskTime <= curToZeroMillions) {
                     ret.add(task);
                 }
@@ -162,8 +168,8 @@ public class TaskService {
         Date today = new Date(System.currentTimeMillis());
         taskExample.or()
                 .andUserIdEqualTo(userId)
-                .andStartTimeLessThanOrEqualTo(today)
-                .andEndTimeGreaterThanOrEqualTo(today);
+                .andStartDateLessThanOrEqualTo(today)
+                .andEndDateGreaterThanOrEqualTo(today);
 
         long zeroMillions = LocalDateTime.of(LocalDate.now(), LocalTime.MIN)
                 .toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
@@ -173,13 +179,30 @@ public class TaskService {
         // 单次任务
         taskExample.or()
                 .andUserIdEqualTo(userId)
-                .andSingleTimeBetween(todayZero, tomorrowZero);
+                .andSingleDateTimeBetween(todayZero, tomorrowZero);
 
         // 长期任务
         taskExample.or()
                 .andUserIdEqualTo(userId)
                 .andTypeEqualTo(Cons.TASK_LONG);
 
+        return taskMapper.selectByExample(taskExample);
+    }
+
+    public boolean markTask(long taskId) {
+        Task task = new Task();
+        task.setId(taskId);
+        task.setMarked(Cons.BYTE_1);
+
+        return taskMapper.updateByPrimaryKeySelective(task) == 1;
+
+    }
+
+    public List<Task> selectMarkedTask(String userId) {
+        TaskExample taskExample = new TaskExample();
+        TaskExample.Criteria criteria = taskExample.createCriteria();
+        criteria.andUserIdEqualTo(userId);
+        criteria.andMarkedEqualTo(Cons.BYTE_1);
         return taskMapper.selectByExample(taskExample);
     }
 

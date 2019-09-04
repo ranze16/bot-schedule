@@ -7,14 +7,17 @@
     <result column="gmt_modified" jdbcType="TIMESTAMP" property="gmtModified" />
     <result column="user_id" jdbcType="VARCHAR" property="userId" />
     <result column="bind_type" jdbcType="TINYINT" property="bindType" />
+    <result column="bind_user" jdbcType="VARCHAR" property="bindUser" />
     <result column="bind_task_id" jdbcType="BIGINT" property="bindTaskId" />
     <result column="type" jdbcType="TINYINT" property="type" />
-    <result column="start_time" jdbcType="DATE" property="startTime" />
-    <result column="end_time" jdbcType="DATE" property="endTime" />
-    <result column="single_time" jdbcType="TIMESTAMP" property="singleTime" />
+    <result column="start_date" jdbcType="DATE" property="startDate" />
+    <result column="end_date" jdbcType="DATE" property="endDate" />
+    <result column="exclude_date_type" jdbcType="TINYINT" property="excludeDateType" />
+    <result column="single_date_time" jdbcType="TIMESTAMP" property="singleDateTime" />
     <result column="time_in_day" jdbcType="TIME" property="timeInDay" />
     <result column="content" jdbcType="VARCHAR" property="content" />
     <result column="addition" jdbcType="VARCHAR" property="addition" />
+    <result column="is_marked" jdbcType="TINYINT" property="marked" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -75,8 +78,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, gmt_create, gmt_modified, user_id, bind_type, bind_task_id, type, start_time, 
-    end_time, single_time, time_in_day, content, addition
+    id, gmt_create, gmt_modified, user_id, bind_type, bind_user, bind_task_id, type, 
+    start_date, end_date, exclude_date_type, single_date_time, time_in_day, content, 
+    addition, is_marked
   </sql>
   <select id="selectByExample" parameterType="com.ranze.schedule.pojo.TaskExample" resultMap="BaseResultMap">
     select
@@ -110,15 +114,17 @@
   </delete>
   <insert id="insert" parameterType="com.ranze.schedule.pojo.Task">
     insert into task (id, gmt_create, gmt_modified, 
-      user_id, bind_type, bind_task_id, 
-      type, start_time, end_time, 
-      single_time, time_in_day, content, 
-      addition)
+      user_id, bind_type, bind_user, 
+      bind_task_id, type, start_date, 
+      end_date, exclude_date_type, single_date_time, 
+      time_in_day, content, addition, 
+      is_marked)
     values (#{id,jdbcType=BIGINT}, #{gmtCreate,jdbcType=TIMESTAMP}, #{gmtModified,jdbcType=TIMESTAMP}, 
-      #{userId,jdbcType=VARCHAR}, #{bindType,jdbcType=TINYINT}, #{bindTaskId,jdbcType=BIGINT}, 
-      #{type,jdbcType=TINYINT}, #{startTime,jdbcType=DATE}, #{endTime,jdbcType=DATE}, 
-      #{singleTime,jdbcType=TIMESTAMP}, #{timeInDay,jdbcType=TIME}, #{content,jdbcType=VARCHAR}, 
-      #{addition,jdbcType=VARCHAR})
+      #{userId,jdbcType=VARCHAR}, #{bindType,jdbcType=TINYINT}, #{bindUser,jdbcType=VARCHAR}, 
+      #{bindTaskId,jdbcType=BIGINT}, #{type,jdbcType=TINYINT}, #{startDate,jdbcType=DATE}, 
+      #{endDate,jdbcType=DATE}, #{excludeDateType,jdbcType=TINYINT}, #{singleDateTime,jdbcType=TIMESTAMP}, 
+      #{timeInDay,jdbcType=TIME}, #{content,jdbcType=VARCHAR}, #{addition,jdbcType=VARCHAR}, 
+      #{marked,jdbcType=TINYINT})
   </insert>
   <insert id="insertSelective" parameterType="com.ranze.schedule.pojo.Task">
     insert into task
@@ -138,20 +144,26 @@
       <if test="bindType != null">
         bind_type,
       </if>
+      <if test="bindUser != null">
+        bind_user,
+      </if>
       <if test="bindTaskId != null">
         bind_task_id,
       </if>
       <if test="type != null">
         type,
       </if>
-      <if test="startTime != null">
-        start_time,
+      <if test="startDate != null">
+        start_date,
       </if>
-      <if test="endTime != null">
-        end_time,
+      <if test="endDate != null">
+        end_date,
       </if>
-      <if test="singleTime != null">
-        single_time,
+      <if test="excludeDateType != null">
+        exclude_date_type,
+      </if>
+      <if test="singleDateTime != null">
+        single_date_time,
       </if>
       <if test="timeInDay != null">
         time_in_day,
@@ -161,6 +173,9 @@
       </if>
       <if test="addition != null">
         addition,
+      </if>
+      <if test="marked != null">
+        is_marked,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -179,20 +194,26 @@
       <if test="bindType != null">
         #{bindType,jdbcType=TINYINT},
       </if>
+      <if test="bindUser != null">
+        #{bindUser,jdbcType=VARCHAR},
+      </if>
       <if test="bindTaskId != null">
         #{bindTaskId,jdbcType=BIGINT},
       </if>
       <if test="type != null">
         #{type,jdbcType=TINYINT},
       </if>
-      <if test="startTime != null">
-        #{startTime,jdbcType=DATE},
+      <if test="startDate != null">
+        #{startDate,jdbcType=DATE},
       </if>
-      <if test="endTime != null">
-        #{endTime,jdbcType=DATE},
+      <if test="endDate != null">
+        #{endDate,jdbcType=DATE},
       </if>
-      <if test="singleTime != null">
-        #{singleTime,jdbcType=TIMESTAMP},
+      <if test="excludeDateType != null">
+        #{excludeDateType,jdbcType=TINYINT},
+      </if>
+      <if test="singleDateTime != null">
+        #{singleDateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="timeInDay != null">
         #{timeInDay,jdbcType=TIME},
@@ -202,6 +223,9 @@
       </if>
       <if test="addition != null">
         #{addition,jdbcType=VARCHAR},
+      </if>
+      <if test="marked != null">
+        #{marked,jdbcType=TINYINT},
       </if>
     </trim>
   </insert>
@@ -229,20 +253,26 @@
       <if test="record.bindType != null">
         bind_type = #{record.bindType,jdbcType=TINYINT},
       </if>
+      <if test="record.bindUser != null">
+        bind_user = #{record.bindUser,jdbcType=VARCHAR},
+      </if>
       <if test="record.bindTaskId != null">
         bind_task_id = #{record.bindTaskId,jdbcType=BIGINT},
       </if>
       <if test="record.type != null">
         type = #{record.type,jdbcType=TINYINT},
       </if>
-      <if test="record.startTime != null">
-        start_time = #{record.startTime,jdbcType=DATE},
+      <if test="record.startDate != null">
+        start_date = #{record.startDate,jdbcType=DATE},
       </if>
-      <if test="record.endTime != null">
-        end_time = #{record.endTime,jdbcType=DATE},
+      <if test="record.endDate != null">
+        end_date = #{record.endDate,jdbcType=DATE},
       </if>
-      <if test="record.singleTime != null">
-        single_time = #{record.singleTime,jdbcType=TIMESTAMP},
+      <if test="record.excludeDateType != null">
+        exclude_date_type = #{record.excludeDateType,jdbcType=TINYINT},
+      </if>
+      <if test="record.singleDateTime != null">
+        single_date_time = #{record.singleDateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.timeInDay != null">
         time_in_day = #{record.timeInDay,jdbcType=TIME},
@@ -252,6 +282,9 @@
       </if>
       <if test="record.addition != null">
         addition = #{record.addition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.marked != null">
+        is_marked = #{record.marked,jdbcType=TINYINT},
       </if>
     </set>
     <if test="_parameter != null">
@@ -265,14 +298,17 @@
       gmt_modified = #{record.gmtModified,jdbcType=TIMESTAMP},
       user_id = #{record.userId,jdbcType=VARCHAR},
       bind_type = #{record.bindType,jdbcType=TINYINT},
+      bind_user = #{record.bindUser,jdbcType=VARCHAR},
       bind_task_id = #{record.bindTaskId,jdbcType=BIGINT},
       type = #{record.type,jdbcType=TINYINT},
-      start_time = #{record.startTime,jdbcType=DATE},
-      end_time = #{record.endTime,jdbcType=DATE},
-      single_time = #{record.singleTime,jdbcType=TIMESTAMP},
+      start_date = #{record.startDate,jdbcType=DATE},
+      end_date = #{record.endDate,jdbcType=DATE},
+      exclude_date_type = #{record.excludeDateType,jdbcType=TINYINT},
+      single_date_time = #{record.singleDateTime,jdbcType=TIMESTAMP},
       time_in_day = #{record.timeInDay,jdbcType=TIME},
       content = #{record.content,jdbcType=VARCHAR},
-      addition = #{record.addition,jdbcType=VARCHAR}
+      addition = #{record.addition,jdbcType=VARCHAR},
+      is_marked = #{record.marked,jdbcType=TINYINT}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -292,20 +328,26 @@
       <if test="bindType != null">
         bind_type = #{bindType,jdbcType=TINYINT},
       </if>
+      <if test="bindUser != null">
+        bind_user = #{bindUser,jdbcType=VARCHAR},
+      </if>
       <if test="bindTaskId != null">
         bind_task_id = #{bindTaskId,jdbcType=BIGINT},
       </if>
       <if test="type != null">
         type = #{type,jdbcType=TINYINT},
       </if>
-      <if test="startTime != null">
-        start_time = #{startTime,jdbcType=DATE},
+      <if test="startDate != null">
+        start_date = #{startDate,jdbcType=DATE},
       </if>
-      <if test="endTime != null">
-        end_time = #{endTime,jdbcType=DATE},
+      <if test="endDate != null">
+        end_date = #{endDate,jdbcType=DATE},
       </if>
-      <if test="singleTime != null">
-        single_time = #{singleTime,jdbcType=TIMESTAMP},
+      <if test="excludeDateType != null">
+        exclude_date_type = #{excludeDateType,jdbcType=TINYINT},
+      </if>
+      <if test="singleDateTime != null">
+        single_date_time = #{singleDateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="timeInDay != null">
         time_in_day = #{timeInDay,jdbcType=TIME},
@@ -316,6 +358,9 @@
       <if test="addition != null">
         addition = #{addition,jdbcType=VARCHAR},
       </if>
+      <if test="marked != null">
+        is_marked = #{marked,jdbcType=TINYINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -325,14 +370,17 @@
       gmt_modified = #{gmtModified,jdbcType=TIMESTAMP},
       user_id = #{userId,jdbcType=VARCHAR},
       bind_type = #{bindType,jdbcType=TINYINT},
+      bind_user = #{bindUser,jdbcType=VARCHAR},
       bind_task_id = #{bindTaskId,jdbcType=BIGINT},
       type = #{type,jdbcType=TINYINT},
-      start_time = #{startTime,jdbcType=DATE},
-      end_time = #{endTime,jdbcType=DATE},
-      single_time = #{singleTime,jdbcType=TIMESTAMP},
+      start_date = #{startDate,jdbcType=DATE},
+      end_date = #{endDate,jdbcType=DATE},
+      exclude_date_type = #{excludeDateType,jdbcType=TINYINT},
+      single_date_time = #{singleDateTime,jdbcType=TIMESTAMP},
       time_in_day = #{timeInDay,jdbcType=TIME},
       content = #{content,jdbcType=VARCHAR},
-      addition = #{addition,jdbcType=VARCHAR}
+      addition = #{addition,jdbcType=VARCHAR},
+      is_marked = #{marked,jdbcType=TINYINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
