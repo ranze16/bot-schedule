@@ -6,6 +6,7 @@ import com.ranze.schedule.mapper.TaskMapper;
 import com.ranze.schedule.pojo.ClockIn;
 import com.ranze.schedule.pojo.Task;
 import com.ranze.schedule.pojo.TaskExample;
+import com.ranze.schedule.util.DateUtil;
 import com.ranze.schedule.util.UniqueIDUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ import java.util.List;
 public class TaskService {
     @Autowired
     UniqueIDUtil uniqueIDUtil;
+
+    @Autowired
+    DateUtil dateUtil;
 
     @Autowired
     TaskMapper taskMapper;
@@ -186,7 +190,58 @@ public class TaskService {
                 .andUserIdEqualTo(userId)
                 .andTypeEqualTo(Cons.TASK_LONG);
 
-        return taskMapper.selectByExample(taskExample);
+        List<Task> tasks = taskMapper.selectByExample(taskExample);
+
+        List<Task> ret = new ArrayList<>();
+        for (Task t : tasks) {
+            if (!shouldExclude(t)) {
+                ret.add(t);
+            }
+        }
+        return ret;
+    }
+
+    private boolean shouldExclude(Task t) {
+        boolean exclude = true;
+        byte excludeDateType = t.getExcludeDateType();
+        Date today = new Date(System.currentTimeMillis());
+        switch (excludeDateType) {
+            case Cons.EXCLUDE_DATE_TYPE_NONE:
+                exclude = false;
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_MONDAY:
+                exclude = !dateUtil.isMonday(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_TUESDAY:
+                exclude = !dateUtil.isTuesDay(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_WEDNESDAY:
+                exclude = !dateUtil.isWednesday(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_THURSDAY:
+                exclude = !dateUtil.isThursday(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_FRIDAY:
+                exclude = !dateUtil.isFriday(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_SATURDAY:
+                exclude = !dateUtil.isSaturday(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_SUNDAY:
+                exclude = !dateUtil.isSunday(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKDAY:
+                exclude = !dateUtil.isWeekday(today);
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKEND:
+                exclude = !dateUtil.isWeekend(today);
+                break;
+            default:
+                exclude = false;
+                break;
+        }
+        return exclude;
+
     }
 
     public boolean markTask(long taskId) {

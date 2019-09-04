@@ -37,14 +37,14 @@ public class TaskServiceTest {
         Date endTime = new Date(startTime.getTime() + 3600 * 1000 * 24 * 10);
         Time timeInDay = new Time(System.currentTimeMillis() + 3600 * 1000);
         boolean success = taskService.insertIntervalTask(userId, bindUserBaby, startTime, endTime,
-                Cons.EXCLUDE_DATE_TYPE_ONLY_WEEKDAY, timeInDay, content, -1);
+                Cons.EXCLUDE_DATE_TYPE_KEEP_THURSDAY, timeInDay, content, -1);
         assert success;
     }
 
     @Test
     public void insertLongTermTask() {
         Time timeInDay = new Time(System.currentTimeMillis() + 3600 * 1000 * 2);
-        boolean success = taskService.insertLongTermTask(userId, bindUserBaby, Cons.EXCLUDE_DATE_TYPE_NONE,
+        boolean success = taskService.insertLongTermTask(userId, bindUserBaby, Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKDAY,
                 timeInDay, content, -1);
         assert success;
     }

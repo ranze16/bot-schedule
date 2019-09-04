@@ -14,7 +14,15 @@ public final class Cons {
     public static final byte BIND_ATTACHED = 2;
 
     public static final byte EXCLUDE_DATE_TYPE_NONE = 0; // 不排除任务日期
-    public static final byte EXCLUDE_DATE_TYPE_ONLY_WEEKDAY = 1; // 排除周末和节假日
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_MONDAY = 1; // 只保留周一
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_TUESDAY = 2; // 只保留周二
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_WEDNESDAY = 3; // 只保留周三
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_THURSDAY = 4; // 只保留周四
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_FRIDAY = 5; // 只保留周五
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_SATURDAY = 6; // 只保留周六
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_SUNDAY = 7; // 只保留周日
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_WEEKDAY = 8; // 排除周末和节假日
+    public static final byte EXCLUDE_DATE_TYPE_KEEP_WEEKEND = 9; // 排除周末和节假日
 
     public static final byte BYTE_1 = 1;
 
