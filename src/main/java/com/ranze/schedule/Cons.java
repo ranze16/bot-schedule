@@ -30,4 +30,8 @@ public final class Cons {
     public static final long ONE_HOUR_MILLIONS = HALF_HOUR_MILLIONS * 2;
     public static final long ONE_DAY_MILLIONS = ONE_HOUR_MILLIONS * 24;
 
+    public static final String TASK_ONCE_STR = "task_once";
+    public static final String TASK_LONG_STR = "task_long";
+
+
 }
