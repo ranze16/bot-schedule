@@ -62,34 +62,30 @@ public class Bot extends BaseBot {
     @Override
     protected Response onInent(IntentRequest intentRequest) {
         String intentName = intentRequest.getIntentName();
-        log.info("Intent request, user id = {}, intent = {}, raw word = {}", intentRequest.getRequestId(), getUserId(),
-                intentName, intentRequest.getQuery());
+        log.info("Intent request, user id = {}, intent = {}, raw word = {}", getUserId(),
+                intentName, intentRequest.getQuery().getOriginal());
 
         Response response = null;
 
-        String createBabyNameIntent = config.getCreateBabyNameIntent();
-        System.out.println("create baby name intent = " + createBabyNameIntent);
-        System.out.println("create_baby_name".equals(createBabyNameIntent));
-
-        switch (intentName) {
-            case "create_baby_name":
-                response = handleCreateBabyNameIntent(null);
-                break;
-            case "create_baby_schedule":
+        if (intentName.equals(config.getCreateBabyNameIntent())) {
+            response = handleCreateBabyNameIntent(null);
+        } else {
+            if (intentName.equals(config.getCreateScheduleIntent())) {
                 response = handleCreateScheduleIntent();
-                break;
-            case Cons.DEFAULT_INTENT:
+
+            } else {
                 response = handleDefaultIntent(intentRequest);
-                break;
-            default:
-                response = handleDefaultIntent(intentRequest);
-                break;
+            }
         }
 
-        return response == null ? onDefaultEvent() : response;
+        if (response == null) {
+            response = new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "我听不懂呢"));
+        }
+        return response;
     }
 
     private Response handleCreateScheduleIntent() {
+        log.info("Handle create schedule intent");
         Response response = null;
 //        getSlot("")
         return response;
@@ -105,6 +101,8 @@ public class Bot extends BaseBot {
         if (action.equals(Cons.ATTRI_SET_NAME)) {
             response = handleCreateBabyNameIntent(intentRequest.getQuery().getOriginal());
             setSessionAttribute(Cons.ATTRI_KEY_ACTION, "");
+        } else {
+            response = new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "我没有听懂呢"));
         }
         return response;
     }

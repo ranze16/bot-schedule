@@ -13,7 +13,8 @@ public class BusinessConfig {
     private long dataCenterId;
     private long workerId;
 
-    private String createBabyNameIntent;
     private String wildCardSlot;
+    private String createBabyNameIntent;
+    private String createScheduleIntent;
 
 }
