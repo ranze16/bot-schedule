@@ -235,7 +235,7 @@ public class Bot extends BaseBot {
         Response response = new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "我没有听懂呢"));
 
         String action = getSessionAttribute(Cons.ATTRI_KEY_ACTION);
-        if (action.equals(Cons.ATTRI_SET_NAME)) {
+        if (action != null && action.equals(Cons.ATTRI_SET_NAME)) {
             response = handleCreateBabyNameIntent(intentRequest.getQuery().getOriginal());
             setSessionAttribute(Cons.ATTRI_KEY_ACTION, "");
         }
