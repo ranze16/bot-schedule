@@ -849,112 +849,172 @@ public class TaskExample {
         }
 
         public Criteria andSingleDateTimeEqualTo(Date value) {
-            addCriterion("single_date_time =", value, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time =", value, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeNotEqualTo(Date value) {
-            addCriterion("single_date_time <>", value, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time <>", value, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeGreaterThan(Date value) {
-            addCriterion("single_date_time >", value, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time >", value, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("single_date_time >=", value, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time >=", value, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeLessThan(Date value) {
-            addCriterion("single_date_time <", value, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time <", value, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeLessThanOrEqualTo(Date value) {
-            addCriterion("single_date_time <=", value, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time <=", value, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeIn(List<Date> values) {
-            addCriterion("single_date_time in", values, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time in", values, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeNotIn(List<Date> values) {
-            addCriterion("single_date_time not in", values, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time not in", values, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeBetween(Date value1, Date value2) {
-            addCriterion("single_date_time between", value1, value2, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time between", value1, value2, "singleDateTime");
             return (Criteria) this;
         }
 
         public Criteria andSingleDateTimeNotBetween(Date value1, Date value2) {
-            addCriterion("single_date_time not between", value1, value2, "singleDateTime");
+            addCriterionForJDBCDate("single_date_time not between", value1, value2, "singleDateTime");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayIsNull() {
-            addCriterion("time_in_day is null");
+        public Criteria andTimeInDayStartIsNull() {
+            addCriterion("time_in_day_start is null");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayIsNotNull() {
-            addCriterion("time_in_day is not null");
+        public Criteria andTimeInDayStartIsNotNull() {
+            addCriterion("time_in_day_start is not null");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayEqualTo(Date value) {
-            addCriterionForJDBCTime("time_in_day =", value, "timeInDay");
+        public Criteria andTimeInDayStartEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_start =", value, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayNotEqualTo(Date value) {
-            addCriterionForJDBCTime("time_in_day <>", value, "timeInDay");
+        public Criteria andTimeInDayStartNotEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_start <>", value, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayGreaterThan(Date value) {
-            addCriterionForJDBCTime("time_in_day >", value, "timeInDay");
+        public Criteria andTimeInDayStartGreaterThan(Date value) {
+            addCriterionForJDBCTime("time_in_day_start >", value, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayGreaterThanOrEqualTo(Date value) {
-            addCriterionForJDBCTime("time_in_day >=", value, "timeInDay");
+        public Criteria andTimeInDayStartGreaterThanOrEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_start >=", value, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayLessThan(Date value) {
-            addCriterionForJDBCTime("time_in_day <", value, "timeInDay");
+        public Criteria andTimeInDayStartLessThan(Date value) {
+            addCriterionForJDBCTime("time_in_day_start <", value, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayLessThanOrEqualTo(Date value) {
-            addCriterionForJDBCTime("time_in_day <=", value, "timeInDay");
+        public Criteria andTimeInDayStartLessThanOrEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_start <=", value, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayIn(List<Date> values) {
-            addCriterionForJDBCTime("time_in_day in", values, "timeInDay");
+        public Criteria andTimeInDayStartIn(List<Date> values) {
+            addCriterionForJDBCTime("time_in_day_start in", values, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayNotIn(List<Date> values) {
-            addCriterionForJDBCTime("time_in_day not in", values, "timeInDay");
+        public Criteria andTimeInDayStartNotIn(List<Date> values) {
+            addCriterionForJDBCTime("time_in_day_start not in", values, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayBetween(Date value1, Date value2) {
-            addCriterionForJDBCTime("time_in_day between", value1, value2, "timeInDay");
+        public Criteria andTimeInDayStartBetween(Date value1, Date value2) {
+            addCriterionForJDBCTime("time_in_day_start between", value1, value2, "timeInDayStart");
             return (Criteria) this;
         }
 
-        public Criteria andTimeInDayNotBetween(Date value1, Date value2) {
-            addCriterionForJDBCTime("time_in_day not between", value1, value2, "timeInDay");
+        public Criteria andTimeInDayStartNotBetween(Date value1, Date value2) {
+            addCriterionForJDBCTime("time_in_day_start not between", value1, value2, "timeInDayStart");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndIsNull() {
+            addCriterion("time_in_day_end is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndIsNotNull() {
+            addCriterion("time_in_day_end is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_end =", value, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndNotEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_end <>", value, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndGreaterThan(Date value) {
+            addCriterionForJDBCTime("time_in_day_end >", value, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndGreaterThanOrEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_end >=", value, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndLessThan(Date value) {
+            addCriterionForJDBCTime("time_in_day_end <", value, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndLessThanOrEqualTo(Date value) {
+            addCriterionForJDBCTime("time_in_day_end <=", value, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndIn(List<Date> values) {
+            addCriterionForJDBCTime("time_in_day_end in", values, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndNotIn(List<Date> values) {
+            addCriterionForJDBCTime("time_in_day_end not in", values, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndBetween(Date value1, Date value2) {
+            addCriterionForJDBCTime("time_in_day_end between", value1, value2, "timeInDayEnd");
+            return (Criteria) this;
+        }
+
+        public Criteria andTimeInDayEndNotBetween(Date value1, Date value2) {
+            addCriterionForJDBCTime("time_in_day_end not between", value1, value2, "timeInDayEnd");
             return (Criteria) this;
         }
 

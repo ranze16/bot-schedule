@@ -1,9 +1,8 @@
 package com.ranze.schedule.mapper;
 
-import java.util.List;
-
 import com.ranze.schedule.pojo.UserInfo;
 import com.ranze.schedule.pojo.UserInfoExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface UserInfoMapper {

@@ -30,7 +30,9 @@ public class Task {
 
     private Date singleDateTime;
 
-    private Date timeInDay;
+    private Date timeInDayStart;
+
+    private Date timeInDayEnd;
 
     private String content;
 
@@ -134,12 +136,20 @@ public class Task {
         this.singleDateTime = singleDateTime;
     }
 
-    public Date getTimeInDay() {
-        return timeInDay;
+    public Date getTimeInDayStart() {
+        return timeInDayStart;
     }
 
-    public void setTimeInDay(Date timeInDay) {
-        this.timeInDay = timeInDay;
+    public void setTimeInDayStart(Date timeInDayStart) {
+        this.timeInDayStart = timeInDayStart;
+    }
+
+    public Date getTimeInDayEnd() {
+        return timeInDayEnd;
+    }
+
+    public void setTimeInDayEnd(Date timeInDayEnd) {
+        this.timeInDayEnd = timeInDayEnd;
     }
 
     public String getContent() {

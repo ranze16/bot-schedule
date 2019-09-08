@@ -13,8 +13,9 @@
     <result column="start_date" jdbcType="DATE" property="startDate" />
     <result column="end_date" jdbcType="DATE" property="endDate" />
     <result column="exclude_date_type" jdbcType="TINYINT" property="excludeDateType" />
-    <result column="single_date_time" jdbcType="TIMESTAMP" property="singleDateTime" />
-    <result column="time_in_day" jdbcType="TIME" property="timeInDay" />
+    <result column="single_date_time" jdbcType="DATE" property="singleDateTime" />
+    <result column="time_in_day_start" jdbcType="TIME" property="timeInDayStart" />
+    <result column="time_in_day_end" jdbcType="TIME" property="timeInDayEnd" />
     <result column="content" jdbcType="VARCHAR" property="content" />
     <result column="addition" jdbcType="VARCHAR" property="addition" />
     <result column="is_marked" jdbcType="TINYINT" property="marked" />
@@ -79,8 +80,8 @@
   </sql>
   <sql id="Base_Column_List">
     id, gmt_create, gmt_modified, user_id, bind_type, bind_user, bind_task_id, type, 
-    start_date, end_date, exclude_date_type, single_date_time, time_in_day, content, 
-    addition, is_marked
+    start_date, end_date, exclude_date_type, single_date_time, time_in_day_start, time_in_day_end, 
+    content, addition, is_marked
   </sql>
   <select id="selectByExample" parameterType="com.ranze.schedule.pojo.TaskExample" resultMap="BaseResultMap">
     select
@@ -117,14 +118,14 @@
       user_id, bind_type, bind_user, 
       bind_task_id, type, start_date, 
       end_date, exclude_date_type, single_date_time, 
-      time_in_day, content, addition, 
-      is_marked)
+      time_in_day_start, time_in_day_end, content, 
+      addition, is_marked)
     values (#{id,jdbcType=BIGINT}, #{gmtCreate,jdbcType=TIMESTAMP}, #{gmtModified,jdbcType=TIMESTAMP}, 
       #{userId,jdbcType=VARCHAR}, #{bindType,jdbcType=TINYINT}, #{bindUser,jdbcType=VARCHAR}, 
       #{bindTaskId,jdbcType=BIGINT}, #{type,jdbcType=TINYINT}, #{startDate,jdbcType=DATE}, 
-      #{endDate,jdbcType=DATE}, #{excludeDateType,jdbcType=TINYINT}, #{singleDateTime,jdbcType=TIMESTAMP}, 
-      #{timeInDay,jdbcType=TIME}, #{content,jdbcType=VARCHAR}, #{addition,jdbcType=VARCHAR}, 
-      #{marked,jdbcType=TINYINT})
+      #{endDate,jdbcType=DATE}, #{excludeDateType,jdbcType=TINYINT}, #{singleDateTime,jdbcType=DATE}, 
+      #{timeInDayStart,jdbcType=TIME}, #{timeInDayEnd,jdbcType=TIME}, #{content,jdbcType=VARCHAR}, 
+      #{addition,jdbcType=VARCHAR}, #{marked,jdbcType=TINYINT})
   </insert>
   <insert id="insertSelective" parameterType="com.ranze.schedule.pojo.Task">
     insert into task
@@ -165,8 +166,11 @@
       <if test="singleDateTime != null">
         single_date_time,
       </if>
-      <if test="timeInDay != null">
-        time_in_day,
+      <if test="timeInDayStart != null">
+        time_in_day_start,
+      </if>
+      <if test="timeInDayEnd != null">
+        time_in_day_end,
       </if>
       <if test="content != null">
         content,
@@ -213,10 +217,13 @@
         #{excludeDateType,jdbcType=TINYINT},
       </if>
       <if test="singleDateTime != null">
-        #{singleDateTime,jdbcType=TIMESTAMP},
+        #{singleDateTime,jdbcType=DATE},
       </if>
-      <if test="timeInDay != null">
-        #{timeInDay,jdbcType=TIME},
+      <if test="timeInDayStart != null">
+        #{timeInDayStart,jdbcType=TIME},
+      </if>
+      <if test="timeInDayEnd != null">
+        #{timeInDayEnd,jdbcType=TIME},
       </if>
       <if test="content != null">
         #{content,jdbcType=VARCHAR},
@@ -272,10 +279,13 @@
         exclude_date_type = #{record.excludeDateType,jdbcType=TINYINT},
       </if>
       <if test="record.singleDateTime != null">
-        single_date_time = #{record.singleDateTime,jdbcType=TIMESTAMP},
+        single_date_time = #{record.singleDateTime,jdbcType=DATE},
       </if>
-      <if test="record.timeInDay != null">
-        time_in_day = #{record.timeInDay,jdbcType=TIME},
+      <if test="record.timeInDayStart != null">
+        time_in_day_start = #{record.timeInDayStart,jdbcType=TIME},
+      </if>
+      <if test="record.timeInDayEnd != null">
+        time_in_day_end = #{record.timeInDayEnd,jdbcType=TIME},
       </if>
       <if test="record.content != null">
         content = #{record.content,jdbcType=VARCHAR},
@@ -304,8 +314,9 @@
       start_date = #{record.startDate,jdbcType=DATE},
       end_date = #{record.endDate,jdbcType=DATE},
       exclude_date_type = #{record.excludeDateType,jdbcType=TINYINT},
-      single_date_time = #{record.singleDateTime,jdbcType=TIMESTAMP},
-      time_in_day = #{record.timeInDay,jdbcType=TIME},
+      single_date_time = #{record.singleDateTime,jdbcType=DATE},
+      time_in_day_start = #{record.timeInDayStart,jdbcType=TIME},
+      time_in_day_end = #{record.timeInDayEnd,jdbcType=TIME},
       content = #{record.content,jdbcType=VARCHAR},
       addition = #{record.addition,jdbcType=VARCHAR},
       is_marked = #{record.marked,jdbcType=TINYINT}
@@ -347,10 +358,13 @@
         exclude_date_type = #{excludeDateType,jdbcType=TINYINT},
       </if>
       <if test="singleDateTime != null">
-        single_date_time = #{singleDateTime,jdbcType=TIMESTAMP},
+        single_date_time = #{singleDateTime,jdbcType=DATE},
       </if>
-      <if test="timeInDay != null">
-        time_in_day = #{timeInDay,jdbcType=TIME},
+      <if test="timeInDayStart != null">
+        time_in_day_start = #{timeInDayStart,jdbcType=TIME},
+      </if>
+      <if test="timeInDayEnd != null">
+        time_in_day_end = #{timeInDayEnd,jdbcType=TIME},
       </if>
       <if test="content != null">
         content = #{content,jdbcType=VARCHAR},
@@ -376,8 +390,9 @@
       start_date = #{startDate,jdbcType=DATE},
       end_date = #{endDate,jdbcType=DATE},
       exclude_date_type = #{excludeDateType,jdbcType=TINYINT},
-      single_date_time = #{singleDateTime,jdbcType=TIMESTAMP},
-      time_in_day = #{timeInDay,jdbcType=TIME},
+      single_date_time = #{singleDateTime,jdbcType=DATE},
+      time_in_day_start = #{timeInDayStart,jdbcType=TIME},
+      time_in_day_end = #{timeInDayEnd,jdbcType=TIME},
       content = #{content,jdbcType=VARCHAR},
       addition = #{addition,jdbcType=VARCHAR},
       is_marked = #{marked,jdbcType=TINYINT}

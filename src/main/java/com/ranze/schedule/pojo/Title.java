@@ -2,18 +2,14 @@ package com.ranze.schedule.pojo;
 
 import java.util.Date;
 
-public class ClockIn {
+public class Title {
     private Long id;
 
     private Date gmtCreate;
 
     private Date gmtModified;
 
-    private String userId;
-
-    private Long taskId;
-
-    private Date opDate;
+    private String content;
 
     public Long getId() {
         return id;
@@ -39,27 +35,11 @@ public class ClockIn {
         this.gmtModified = gmtModified;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getContent() {
+        return content;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId == null ? null : userId.trim();
-    }
-
-    public Long getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(Long taskId) {
-        this.taskId = taskId;
-    }
-
-    public Date getOpDate() {
-        return opDate;
-    }
-
-    public void setOpDate(Date opDate) {
-        this.opDate = opDate;
+    public void setContent(String content) {
+        this.content = content == null ? null : content.trim();
     }
 }

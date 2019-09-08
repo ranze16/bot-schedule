@@ -1,7 +1,10 @@
 package com.ranze.schedule.pojo;
 
+import lombok.ToString;
+
 import java.util.Date;
 
+@ToString
 public class UserInfo {
     private Long id;
 
@@ -12,6 +15,12 @@ public class UserInfo {
     private String userId;
 
     private String nickName;
+
+    private Integer points;
+
+    private String title;
+
+    private Long rank;
 
     public Long getId() {
         return id;
@@ -51,5 +60,29 @@ public class UserInfo {
 
     public void setNickName(String nickName) {
         this.nickName = nickName == null ? null : nickName.trim();
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title == null ? null : title.trim();
+    }
+
+    public Long getRank() {
+        return rank;
+    }
+
+    public void setRank(Long rank) {
+        this.rank = rank;
     }
 }

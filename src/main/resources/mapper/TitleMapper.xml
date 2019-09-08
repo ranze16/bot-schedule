@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ranze.schedule.mapper.UserInfoMapper">
-  <resultMap id="BaseResultMap" type="com.ranze.schedule.pojo.UserInfo">
+<mapper namespace="com.ranze.schedule.mapper.TitleMapper">
+  <resultMap id="BaseResultMap" type="com.ranze.schedule.pojo.Title">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="gmt_create" jdbcType="TIMESTAMP" property="gmtCreate" />
     <result column="gmt_modified" jdbcType="TIMESTAMP" property="gmtModified" />
-    <result column="user_id" jdbcType="VARCHAR" property="userId" />
-    <result column="nick_name" jdbcType="VARCHAR" property="nickName" />
-    <result column="points" jdbcType="INTEGER" property="points" />
-    <result column="title" jdbcType="VARCHAR" property="title" />
-    <result column="rank" jdbcType="BIGINT" property="rank" />
+    <result column="content" jdbcType="VARCHAR" property="content" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -70,15 +66,15 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, gmt_create, gmt_modified, user_id, nick_name, points, title, rank
+    id, gmt_create, gmt_modified, content
   </sql>
-  <select id="selectByExample" parameterType="com.ranze.schedule.pojo.UserInfoExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.ranze.schedule.pojo.TitleExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from user_info
+    from title
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
@@ -89,29 +85,27 @@
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from user_info
+    from title
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-    delete from user_info
+    delete from title
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.ranze.schedule.pojo.UserInfoExample">
-    delete from user_info
+  <delete id="deleteByExample" parameterType="com.ranze.schedule.pojo.TitleExample">
+    delete from title
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.ranze.schedule.pojo.UserInfo">
-    insert into user_info (id, gmt_create, gmt_modified, 
-      user_id, nick_name, points, 
-      title, rank)
+  <insert id="insert" parameterType="com.ranze.schedule.pojo.Title">
+    insert into title (id, gmt_create, gmt_modified, 
+      content)
     values (#{id,jdbcType=BIGINT}, #{gmtCreate,jdbcType=TIMESTAMP}, #{gmtModified,jdbcType=TIMESTAMP}, 
-      #{userId,jdbcType=VARCHAR}, #{nickName,jdbcType=VARCHAR}, #{points,jdbcType=INTEGER}, 
-      #{title,jdbcType=VARCHAR}, #{rank,jdbcType=BIGINT})
+      #{content,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.ranze.schedule.pojo.UserInfo">
-    insert into user_info
+  <insert id="insertSelective" parameterType="com.ranze.schedule.pojo.Title">
+    insert into title
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="id != null">
         id,
@@ -122,20 +116,8 @@
       <if test="gmtModified != null">
         gmt_modified,
       </if>
-      <if test="userId != null">
-        user_id,
-      </if>
-      <if test="nickName != null">
-        nick_name,
-      </if>
-      <if test="points != null">
-        points,
-      </if>
-      <if test="title != null">
-        title,
-      </if>
-      <if test="rank != null">
-        rank,
+      <if test="content != null">
+        content,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -148,31 +130,19 @@
       <if test="gmtModified != null">
         #{gmtModified,jdbcType=TIMESTAMP},
       </if>
-      <if test="userId != null">
-        #{userId,jdbcType=VARCHAR},
-      </if>
-      <if test="nickName != null">
-        #{nickName,jdbcType=VARCHAR},
-      </if>
-      <if test="points != null">
-        #{points,jdbcType=INTEGER},
-      </if>
-      <if test="title != null">
-        #{title,jdbcType=VARCHAR},
-      </if>
-      <if test="rank != null">
-        #{rank,jdbcType=BIGINT},
+      <if test="content != null">
+        #{content,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.ranze.schedule.pojo.UserInfoExample" resultType="java.lang.Long">
-    select count(*) from user_info
+  <select id="countByExample" parameterType="com.ranze.schedule.pojo.TitleExample" resultType="java.lang.Long">
+    select count(*) from title
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map">
-    update user_info
+    update title
     <set>
       <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
@@ -183,20 +153,8 @@
       <if test="record.gmtModified != null">
         gmt_modified = #{record.gmtModified,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.userId != null">
-        user_id = #{record.userId,jdbcType=VARCHAR},
-      </if>
-      <if test="record.nickName != null">
-        nick_name = #{record.nickName,jdbcType=VARCHAR},
-      </if>
-      <if test="record.points != null">
-        points = #{record.points,jdbcType=INTEGER},
-      </if>
-      <if test="record.title != null">
-        title = #{record.title,jdbcType=VARCHAR},
-      </if>
-      <if test="record.rank != null">
-        rank = #{record.rank,jdbcType=BIGINT},
+      <if test="record.content != null">
+        content = #{record.content,jdbcType=VARCHAR},
       </if>
     </set>
     <if test="_parameter != null">
@@ -204,21 +162,17 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map">
-    update user_info
+    update title
     set id = #{record.id,jdbcType=BIGINT},
       gmt_create = #{record.gmtCreate,jdbcType=TIMESTAMP},
       gmt_modified = #{record.gmtModified,jdbcType=TIMESTAMP},
-      user_id = #{record.userId,jdbcType=VARCHAR},
-      nick_name = #{record.nickName,jdbcType=VARCHAR},
-      points = #{record.points,jdbcType=INTEGER},
-      title = #{record.title,jdbcType=VARCHAR},
-      rank = #{record.rank,jdbcType=BIGINT}
+      content = #{record.content,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.ranze.schedule.pojo.UserInfo">
-    update user_info
+  <update id="updateByPrimaryKeySelective" parameterType="com.ranze.schedule.pojo.Title">
+    update title
     <set>
       <if test="gmtCreate != null">
         gmt_create = #{gmtCreate,jdbcType=TIMESTAMP},
@@ -226,33 +180,17 @@
       <if test="gmtModified != null">
         gmt_modified = #{gmtModified,jdbcType=TIMESTAMP},
       </if>
-      <if test="userId != null">
-        user_id = #{userId,jdbcType=VARCHAR},
-      </if>
-      <if test="nickName != null">
-        nick_name = #{nickName,jdbcType=VARCHAR},
-      </if>
-      <if test="points != null">
-        points = #{points,jdbcType=INTEGER},
-      </if>
-      <if test="title != null">
-        title = #{title,jdbcType=VARCHAR},
-      </if>
-      <if test="rank != null">
-        rank = #{rank,jdbcType=BIGINT},
+      <if test="content != null">
+        content = #{content,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.ranze.schedule.pojo.UserInfo">
-    update user_info
+  <update id="updateByPrimaryKey" parameterType="com.ranze.schedule.pojo.Title">
+    update title
     set gmt_create = #{gmtCreate,jdbcType=TIMESTAMP},
       gmt_modified = #{gmtModified,jdbcType=TIMESTAMP},
-      user_id = #{userId,jdbcType=VARCHAR},
-      nick_name = #{nickName,jdbcType=VARCHAR},
-      points = #{points,jdbcType=INTEGER},
-      title = #{title,jdbcType=VARCHAR},
-      rank = #{rank,jdbcType=BIGINT}
+      content = #{content,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

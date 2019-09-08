@@ -33,5 +33,10 @@ public final class Cons {
     public static final String TASK_ONCE_STR = "task_once";
     public static final String TASK_LONG_STR = "task_long";
 
+    public static final String TASK_STATE_EXPIRED = "已过期";
+    public static final String TASK_STATE_NEED_CLOCK_IN = "可打卡";
+    public static final String TASK_STATE_CLOCKED_IN = "已打卡";
+    public static final String TASK_STATE_WAIT_CLOCKED_IN = "待打卡";
+
 
 }

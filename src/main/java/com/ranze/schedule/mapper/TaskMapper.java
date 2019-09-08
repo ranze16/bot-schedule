@@ -1,8 +1,9 @@
 package com.ranze.schedule.mapper;
 
+import java.util.List;
+
 import com.ranze.schedule.pojo.Task;
 import com.ranze.schedule.pojo.TaskExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface TaskMapper {

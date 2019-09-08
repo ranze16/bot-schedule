@@ -1,14 +1,26 @@
 
 -- 创建用户信息表
 CREATE TABLE user_info (
-id bigint NOT NULL,
+id bigint unsigned NOT NULL,
 gmt_create datetime DEFAULT CURRENT_TIMESTAMP,
 gmt_modified datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 user_id varchar(10) NOT NULL COMMENT 'DuerOS 生成的 user id',
 nick_name varchar(30) NOT NULL COMMENT '昵称',
-PRIMARY KEY (id),
-UNIQUE KEY user_id (user_id)
+points int NOT NULL DEFAULT 0 COMMENT '积分',
+title varchar(20) DEFAULT 0 COMMENT '称号',
+rank bigint unsigned NOT NULL DEFAULT 0 COMMENT '排名',
+PRIMARY KEY pk_id (id),
+UNIQUE KEY uk_user_id (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户信息表';
+
+-- 创建称号表
+CREATE TABLE title (
+id bigint unsigned NOT NULL,
+gmt_create datetime DEFAULT CURRENT_TIMESTAMP,
+gmt_modified datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+content varchar(20) NOT NULL COMMENT '称号内容',
+PRIMARY KEY pk_id (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='称号表';
 
 -- 创建任务表
 CREATE TABLE task (
@@ -23,8 +35,9 @@ type tinyint unsigned NOT NULL COMMENT '任务的类型：1 表示 单次任务�
 start_date date NOT NULL DEFAULT '1970-01-01' COMMENT '时间段任务的开始日期',
 end_date date NOT NULL DEFAULT '1970-01-01' COMMENT '时间段任务的结束日期',
 exclude_date_type tinyint unsigned NOT NULL DEFAULT 0 COMMENT '对于长期任务, 排除的日期的类型，0：不排除 1: 排除周末和节假日',
-single_date_time datetime NOT NULL DEFAULT '1970-01-01 00:00:00' COMMENT '单次任务的具体日期时间',
-time_in_day time NOT NULL DEFAULT '00:00:00' COMMENT '每天执行任务的具体时间，如10点',
+single_date_time date NOT NULL DEFAULT '1970-01-01' COMMENT '单次任务的具体日期',
+time_in_day_start time NOT NULL DEFAULT '00:00:00' COMMENT '每天执行任务的具体时间的开始，如10点',
+time_in_day_end time NOT NULL DEFAULT '00:00:00' COMMENT '每天执行任务的具体时间的结束，如11点',
 content varchar(50) NOT NULL COMMENT '任务的具体内容',
 addition varchar(50) NOT NULL DEFAULT '' COMMENT '任务附加属性',
 is_marked tinyint unsigned NOT NULL DEFAULT 0 COMMENT '0: 收藏, 1: 收藏',

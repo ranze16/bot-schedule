@@ -6,7 +6,6 @@ import com.ranze.schedule.pojo.UserInfoExample;
 import com.ranze.schedule.util.UniqueIDUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,8 +22,17 @@ public class UserInfoService {
         userInfo.setId(uniqueIDUtil.nextId());
         userInfo.setUserId(userId);
         userInfo.setNickName(nickName);
+        userInfo.setPoints(0);
+        userInfo.setTitle("1");
         userInfoMapper.insertSelective(userInfo);
     }
+
+    public boolean incrementPoints(UserInfo userInfo, int increPoints) {
+        userInfo.setPoints(userInfo.getPoints() + increPoints);
+        return userInfoMapper.updateByPrimaryKeySelective(userInfo) == 1;
+
+    }
+
 
     public UserInfo getUserInfo(String userId) {
         UserInfoExample userInfoExample = new UserInfoExample();
