@@ -141,20 +141,9 @@ public class TaskService {
 
         List<Task> tasks = selectTasksByDate(userId, dateUtil.today());
 
-        long zeroMillions = LocalDateTime.of(LocalDate.now(), LocalTime.MIN)
-                .toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-        long curToZeroMillions = System.currentTimeMillis() - zeroMillions;
-
-        // 任务的执行结束时间必须在 [judgeStartTime, curToZeroMillions] 之间, 如果 judgeStartTime 小于 0, 则置为 0
-        long judgeStartTime = curToZeroMillions - earlierTimeInMillions;
-        if (judgeStartTime < 0) {
-            judgeStartTime = 0;
-        }
-
-        long finalJudgeStartTime = judgeStartTime;
         tasks.forEach(task -> {
-            long taskTime = task.getTimeInDayEnd().getTime();
-            if (taskTime >= finalJudgeStartTime && taskTime <= curToZeroMillions) {
+            String taskState = getTaskState(task, earlierTimeInMillions);
+            if (taskState.equals(Cons.TASK_STATE_CLOCKED_IN) || taskState.equals(Cons.TASK_STATE_NEED_CLOCK_IN)) {
                 ret.add(task);
             }
         });
@@ -164,13 +153,16 @@ public class TaskService {
     public String getTaskState(Task task, long earlierTimeInMillions) {
         List<Long> clockInTaskIds = selectClockInTaskIds(task.getUserId(), dateUtil.today());
 
-        long taskTime = task.getTimeInDayEnd().getTime();
-
+        // 时区转换 8小时的时差
         long zeroMillions = LocalDateTime.of(LocalDate.now(), LocalTime.MIN)
                 .toInstant(ZoneOffset.ofHours(8)).toEpochMilli();
-        long curToZeroMillions = System.currentTimeMillis() - zeroMillions;
+        long taskTime = task.getTimeInDayEnd().getTime() + Cons.EIGHT_HOUR_MILLIONS + zeroMillions;
 
-        long judgeStartTime = curToZeroMillions - earlierTimeInMillions;
+        long currentTimeMillis = System.currentTimeMillis();
+
+        // 任务的执行结束时间必须在 [judgeStartTime, curToZeroMillions] 之间, 如果 judgeStartTime 小于 0, 则置为 0
+//        long judgeStartTime = curToZeroMillions - earlierTimeInMillions;
+        long judgeStartTime = currentTimeMillis - earlierTimeInMillions;
         if (judgeStartTime < 0) {
             judgeStartTime = 0;
         }
@@ -181,7 +173,7 @@ public class TaskService {
             } else {
                 return Cons.TASK_STATE_EXPIRED;
             }
-        } else if (taskTime <= curToZeroMillions) {
+        } else if (taskTime <= currentTimeMillis) {
             if (clockInTaskIds.contains(task.getId())) {
                 return Cons.TASK_STATE_CLOCKED_IN;
             } else {
@@ -332,7 +324,7 @@ public class TaskService {
                 .andOpDateEqualTo(date);
         List<ClockIn> clockIns = clockInMapper.selectByExample(clockInExample);
         for (ClockIn clockIn : clockIns) {
-            clockInTaskIds.add(clockIn.getId());
+            clockInTaskIds.add(clockIn.getTaskId());
         }
         return clockInTaskIds;
     }

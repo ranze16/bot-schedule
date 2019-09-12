@@ -5,6 +5,7 @@ public final class Cons {
 
     public static final String ATTRI_KEY_ACTION = "action";
     public static final String ATTRI_SET_NAME = "set_name";
+    public static final String ATTRI_CLOCK_IN = "clock_in";
 
     public static final byte TASK_ONCE = 1; // 单次任务
     public static final byte TASK_INTERVAL = 2; // 一段时间内的任务
@@ -28,6 +29,7 @@ public final class Cons {
 
     public static final long HALF_HOUR_MILLIONS = 3600 / 2 * 1000;
     public static final long ONE_HOUR_MILLIONS = HALF_HOUR_MILLIONS * 2;
+    public static final long EIGHT_HOUR_MILLIONS = ONE_HOUR_MILLIONS * 8;
     public static final long ONE_DAY_MILLIONS = ONE_HOUR_MILLIONS * 24;
 
     public static final String TASK_ONCE_STR = "task_once";
@@ -37,6 +39,8 @@ public final class Cons {
     public static final String TASK_STATE_NEED_CLOCK_IN = "可打卡";
     public static final String TASK_STATE_CLOCKED_IN = "已打卡";
     public static final String TASK_STATE_WAIT_CLOCKED_IN = "待打卡";
+
+    public static final String INTENT_CLOCK_IN = "clock_in";
 
 
 }

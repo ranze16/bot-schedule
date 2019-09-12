@@ -21,7 +21,7 @@ public class TaskServiceTest {
     @Autowired
     TaskService taskService;
 
-    private String userId = "test_task";
+    private String userId = "35361352";
     private String content = "背单词";
     private String bindUserBaby = "宝贝";
 
@@ -96,5 +96,11 @@ public class TaskServiceTest {
     public void selectMarkedTask() {
         List<Task> tasks = taskService.selectMarkedTask(userId);
         System.out.println(tasks);
+    }
+
+    @Test
+    public void selectClockInTaskIds() {
+        List<Long> clockInTaskIds = taskService.selectClockInTaskIds(userId, dateUtil.today());
+        System.out.println(clockInTaskIds);
     }
 }

@@ -4,9 +4,10 @@ import com.baidu.dueros.bot.BaseBot;
 import com.baidu.dueros.data.request.IntentRequest;
 import com.baidu.dueros.data.request.LaunchRequest;
 import com.baidu.dueros.data.request.SessionEndedRequest;
+import com.baidu.dueros.data.request.events.ElementSelectedEvent;
 import com.baidu.dueros.data.response.OutputSpeech;
 import com.baidu.dueros.data.response.Reprompt;
-import com.baidu.dueros.data.response.card.*;
+import com.baidu.dueros.data.response.card.TextCard;
 import com.baidu.dueros.data.response.directive.display.Hint;
 import com.baidu.dueros.data.response.directive.display.RenderTemplate;
 import com.baidu.dueros.data.response.directive.display.templates.ListItem;
@@ -72,14 +73,7 @@ public class Bot extends BaseBot {
                 listTemplate.setTitle("当前任务");
                 listTemplate.setToken("token");
                 for (Task task : todayTasks) {
-                    ListItem listItem = new ListItem();
-                    Date timeInDayStart = task.getTimeInDayStart();
-                    Date timeInDayEnd = task.getTimeInDayEnd();
-                    listItem.setPlainPrimaryText(
-                            dateUtil.convertDate(timeInDayStart) + "~" + dateUtil.convertDate(timeInDayEnd))
-                            .setPlainSecondaryText(task.getContent())
-                            .setPlainTertiaryText(taskService.getTaskState(task, Cons.HALF_HOUR_MILLIONS))
-                            .setImageUrl("https://skillstore.cdn.bcebos.com/icon/100/c709eed1-c07a-be4a-b242-0b0d8b777041.jpg");
+                    ListItem listItem = getListItem(task);
 
                     listTemplate.addListItem(listItem);
                 }
@@ -108,6 +102,18 @@ public class Bot extends BaseBot {
         }
     }
 
+    private ListItem getListItem(Task task) {
+        ListItem listItem = new ListItem();
+        Date timeInDayStart = task.getTimeInDayStart();
+        Date timeInDayEnd = task.getTimeInDayEnd();
+        listItem.setPlainPrimaryText(
+                dateUtil.convertDate(timeInDayStart) + "~" + dateUtil.convertDate(timeInDayEnd))
+                .setPlainSecondaryText(task.getContent())
+                .setPlainTertiaryText(taskService.getTaskState(task, Cons.HALF_HOUR_MILLIONS))
+                .setImageUrl("https://skillstore.cdn.bcebos.com/icon/100/c709eed1-c07a-be4a-b242-0b0d8b777041.jpg");
+        return listItem;
+    }
+
     @Override
     protected Response onSessionEnded(SessionEndedRequest sessionEndedRequest) {
         log.info("Session end, req id =  {}, user id = {} ", sessionEndedRequest.getRequestId(), getUserId());
@@ -129,6 +135,8 @@ public class Bot extends BaseBot {
             response = handleCreateBabyNameIntent(null);
         } else if (intentName.equals(config.getCreateScheduleIntent())) {
             response = handleCreateScheduleIntent();
+        } else if (intentName.equals(Cons.INTENT_CLOCK_IN)) {
+            response = handleClockInIntent();
         } else {
             response = handleDefaultIntent(intentRequest);
         }
@@ -137,6 +145,50 @@ public class Bot extends BaseBot {
             response = new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "我听不懂呢"));
         }
         return response;
+    }
+
+    private Response handleClockInIntent() {
+        List<Task> tasks = taskService.selectCurrentNearbyTasks(getUserId(), Cons.HALF_HOUR_MILLIONS);
+        if (tasks.isEmpty()) {
+            TextCard card = new TextCard("当前没有可以打卡的任务哦");
+            return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "当前没有可以打卡的任务哦"), card);
+        }
+        setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_CLOCK_IN);
+
+        String outputSpeechStr = null;
+        ListTemplate2 listTemplate2 = new ListTemplate2();
+        for (Task task : tasks) {
+            ListItem listItem = getListItem(task);
+            listItem.setToken(task.getId() + "");
+            listTemplate2.addListItem(listItem);
+        }
+        if (tasks.size() == 1) {
+            outputSpeechStr = "请问这是你当前可要打卡的任务，对我说我要打卡";
+        } else {
+            outputSpeechStr = "你当前有" + tasks.size() + "个任务, 你要打卡第几个呢？";
+        }
+        RenderTemplate renderTemplate = new RenderTemplate(listTemplate2);
+        this.addDirective(renderTemplate);
+        OutputSpeech outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.PlainText, outputSpeechStr);
+        return new Response(outputSpeech, null, new Reprompt(outputSpeech));
+
+    }
+
+    @Override
+    protected Response onElementSelectedEvent(ElementSelectedEvent elementSelectedEvent) {
+
+        String action = getSessionAttribute(Cons.ATTRI_KEY_ACTION);
+        if (action != null && action.equals(Cons.ATTRI_CLOCK_IN)) {
+            String token = elementSelectedEvent.getToken();
+            if (Strings.isEmpty(token)) {
+                return super.onElementSelectedEvent(elementSelectedEvent);
+            } else {
+                taskService.insertClockInToday(getUserId(), Long.valueOf(token));
+            }
+
+        }
+
+        return super.onElementSelectedEvent(elementSelectedEvent);
     }
 
     private Response handleCreateScheduleIntent() {
