@@ -13,14 +13,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -37,9 +38,11 @@ public class TaskService {
 
     @Autowired
     ClockInMapper clockInMapper;
+    @Autowired
+    UserInfoService userInfoService;
 
-    public boolean insertOnceTask(String userId, String bindUser, Date singleTaskDate, Time timeInDayStart, Time timeInDayEnd,
-                                  String content, long bindTaskId) {
+    public Task insertOnceTask(String userId, String bindUser, Date singleTaskDate, Time timeInDayStart, Time timeInDayEnd,
+                               String content, long bindTaskId) {
         // 单次任务不会有排除日期的需求
         if (bindTaskId > 0) {
             return insertTask(userId, Cons.BIND_ATTACHED, bindUser, bindTaskId, Cons.TASK_ONCE, null, null,
@@ -50,8 +53,8 @@ public class TaskService {
         }
     }
 
-    public boolean insertIntervalTask(String userId, String bindUser, Date startTime, Date entTime, byte excludeDateType,
-                                      Time timeInDayStart, Time timeInDayEnd, String content, long bindTaskId) {
+    public Task insertIntervalTask(String userId, String bindUser, Date startTime, Date entTime, byte excludeDateType,
+                                   Time timeInDayStart, Time timeInDayEnd, String content, long bindTaskId) {
         if (bindTaskId > 0) {
             return insertTask(userId, Cons.BIND_ATTACHED, bindUser, bindTaskId, Cons.TASK_INTERVAL,
                     startTime, entTime, excludeDateType, null, timeInDayStart, timeInDayEnd, content);
@@ -61,8 +64,8 @@ public class TaskService {
         }
     }
 
-    public boolean insertLongTermTask(String userId, String bindUser, byte excludeDateType,
-                                      Time timeInDayStart, Time timeInDayEnd, String content, long bindTaskId) {
+    public Task insertLongTermTask(String userId, String bindUser, byte excludeDateType,
+                                   Time timeInDayStart, Time timeInDayEnd, String content, long bindTaskId) {
         if (bindTaskId > 0) {
             return insertTask(userId, Cons.BIND_ATTACHED, bindUser, bindTaskId, Cons.TASK_LONG,
                     null, null, excludeDateType, null, timeInDayStart, timeInDayEnd, content);
@@ -95,9 +98,9 @@ public class TaskService {
      * @param content        任务的具体内容
      * @return 成功返回 {@code true}， 失败返回 {@code false}
      */
-    public boolean insertTask(String userId, byte bindType, String bindUser, long bindTaskId, byte type,
-                              Date startDate, Date endDate, byte excludeDateType,
-                              Date singleDate, Time timeInDayStart, Time timeInDayEnd, String content) {
+    public Task insertTask(String userId, byte bindType, String bindUser, long bindTaskId, byte type,
+                           Date startDate, Date endDate, byte excludeDateType,
+                           Date singleDate, Time timeInDayStart, Time timeInDayEnd, String content) {
         Task task = new Task();
         task.setId(uniqueIDUtil.nextId());
         task.setUserId(userId);
@@ -133,7 +136,30 @@ public class TaskService {
 
         task.setContent(content);
 
-        return taskMapper.insertSelective(task) == 1;
+        if (taskMapper.insertSelective(task) == 1) {
+            return task;
+        } else {
+            return null;
+        }
+    }
+
+    @Transactional
+    public Task insertBindTask(String owner, Time timeInDayStart, Time timeInDayEnd, String content, Task bindTarget) {
+        Task task = insertTask(bindTarget.getUserId(), Cons.BIND_ATTACHED, owner, bindTarget.getBindTaskId(), bindTarget.getType(),
+                bindTarget.getStartDate(), bindTarget.getEndDate(), bindTarget.getExcludeDateType(), bindTarget.getSingleDateTime(),
+                timeInDayStart, timeInDayEnd, content);
+
+        updateTaskBindId(bindTarget.getId(), task.getId());
+
+        return task;
+    }
+
+    public boolean updateTaskBindId(long taskId, long bindTaskId) {
+        Task task = new Task();
+        task.setId(taskId);
+        task.setBindTaskId(bindTaskId);
+        return taskMapper.updateByPrimaryKeySelective(task) == 1;
+
     }
 
     public List<Task> selectCurrentNearbyTasks(String userId, long earlierTimeInMillions) {
@@ -223,6 +249,10 @@ public class TaskService {
         return ret;
     }
 
+    public Task selectTaskById(long id) {
+        return taskMapper.selectByPrimaryKey(id);
+    }
+
     private boolean shouldExclude(Task t) {
         boolean exclude = true;
         byte excludeDateType = t.getExcludeDateType();
@@ -296,7 +326,11 @@ public class TaskService {
     }
 
     public boolean insertClockInToday(String userId, long taskId) {
-        return insertClockIn(userId, taskId, new Date(System.currentTimeMillis()));
+        boolean success = insertClockIn(userId, taskId, new Date(System.currentTimeMillis()));
+        if (success) {
+            userInfoService.incrementPoints(userInfoService.getUserInfo(userId), Cons.POINTS_ONE_CLOCK_IN);
+        }
+        return success;
     }
 
     public boolean insertClockIn(String userId, long taskId, Date date) {

@@ -26,13 +26,12 @@ public class TaskServiceTest {
     private String bindUserBaby = "宝贝";
 
     @Test
-
     public void insertOnceTask() {
         Date date = new Date(System.currentTimeMillis());
         Time startTime = new Time(System.currentTimeMillis() + Cons.ONE_HOUR_MILLIONS);
         Time endTime = new Time(System.currentTimeMillis() + Cons.ONE_HOUR_MILLIONS * 2);
-        boolean success = taskService.insertOnceTask(userId, bindUserBaby, date, startTime, endTime, content, -1);
-        assert success;
+        Task task = taskService.insertOnceTask(userId, bindUserBaby, date, startTime, endTime, content, -1);
+        assert task != null;
     }
 
     @Test
@@ -41,18 +40,18 @@ public class TaskServiceTest {
         Date endTime = new Date(startTime.getTime() + 3600 * 1000 * 24 * 10);
         Time timeInDayStart = new Time(System.currentTimeMillis() + 3600 * 1000);
         Time timeInDayEnd = new Time(System.currentTimeMillis() + 3600 * 1000 * 3);
-        boolean success = taskService.insertIntervalTask(userId, bindUserBaby, startTime, endTime,
+        Task task = taskService.insertIntervalTask(userId, bindUserBaby, startTime, endTime,
                 Cons.EXCLUDE_DATE_TYPE_KEEP_THURSDAY, timeInDayStart, timeInDayEnd, content, -1);
-        assert success;
+        assert task != null;
     }
 
     @Test
     public void insertLongTermTask() {
         Time timeInDayStart = new Time(System.currentTimeMillis() + 3600 * 1000 * 2);
         Time timeInDayEnd = new Time(System.currentTimeMillis() + 3600 * 1000 * 2);
-        boolean success = taskService.insertLongTermTask(userId, bindUserBaby, Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKEND,
+        Task task = taskService.insertLongTermTask(userId, bindUserBaby, Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKEND,
                 timeInDayStart, timeInDayEnd, content, -1);
-        assert success;
+        assert task != null;
     }
 
     @Test

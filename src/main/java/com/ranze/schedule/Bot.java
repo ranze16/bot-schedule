@@ -137,6 +137,8 @@ public class Bot extends BaseBot {
             response = handleCreateScheduleIntent();
         } else if (intentName.equals(Cons.INTENT_CLOCK_IN)) {
             response = handleClockInIntent();
+        } else if (intentName.equals(Cons.INTENT_BIND_TASK)) {
+            response = handleBindTask();
         } else {
             response = handleDefaultIntent(intentRequest);
         }
@@ -144,6 +146,71 @@ public class Bot extends BaseBot {
         if (response == null) {
             response = new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "我听不懂呢"));
         }
+        return response;
+    }
+
+    private Response handleBindTask() {
+        setExpectSpeech(true);
+        Response response = null;
+        OutputSpeech outputSpeech = new OutputSpeech();
+        outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+
+        String taskIdStr = getSessionAttribute(Cons.ATTRI_KEY_TASK_ID);
+        if (taskIdStr == null) {
+            return response;
+        }
+
+        long masterTaskId = Long.valueOf(taskIdStr);
+        String bindTaskTimeInDayStart = getSlot(Cons.SLOT_BIND_TASK_TIME_IN_DAY_START);
+        String bindTaskTimeInDayEnd = getSlot(Cons.SLOT_BIND_TASK_TIME_IN_DAY_END);
+        String bindTaskOwner = getSlot(Cons.SLOT_BIND_TASK_OWNER);
+        String bindTaskContent = getSlot(Cons.SLOT_BIND_TASK_CONTENT);
+
+        log.info("Bind task time in day start: {}", bindTaskTimeInDayStart);
+        log.info("Bind task time in day end: {}", bindTaskTimeInDayEnd);
+        log.info("Bind task owner: {}", bindTaskOwner);
+        log.info("Bind task content: {}", bindTaskContent);
+
+        if (Strings.isEmpty(bindTaskOwner)) {
+            ask(Cons.SLOT_BIND_TASK_OWNER);
+            outputSpeech.setText("请问你要绑定谁的任务呢？");
+            response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
+            return response;
+        }
+        if (Strings.isEmpty(bindTaskTimeInDayStart)) {
+            ask(Cons.SLOT_BIND_TASK_TIME_IN_DAY_START);
+            outputSpeech.setText("任务的开始时间是什么呢，例如上午10点，下午2点");
+            response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
+            return response;
+        }
+        if (Strings.isEmpty(bindTaskTimeInDayEnd)) {
+            ask(Cons.SLOT_BIND_TASK_TIME_IN_DAY_END);
+            outputSpeech.setText("任务的结束时间是什么呢，例如上午11点，下午3点");
+            response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
+            return response;
+        }
+        if (Strings.isEmpty(bindTaskContent)) {
+            ask(Cons.SLOT_BIND_TASK_CONTENT);
+            outputSpeech.setText("你的任务内容是什么呢，例如看书，写日记等");
+            response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
+            return response;
+        }
+
+        Task task = taskService.selectTaskById(masterTaskId);
+        if (task != null) {
+            Task bindTask = taskService.insertBindTask(bindTaskOwner, dateUtil.convertTime(bindTaskTimeInDayStart),
+                    dateUtil.convertTime(bindTaskTimeInDayEnd), bindTaskContent, task);
+            if (bindTask != null) {
+                setExpectSpeech(false);
+                outputSpeech.setText("好的, 绑定的任务创建成功了，记得和宝贝一起打卡哦");
+                response = new Response(outputSpeech, null);
+            } else {
+                setExpectSpeech(false);
+                outputSpeech.setText("哎呀，我遇到了点问题");
+                response = new Response(outputSpeech, null);
+            }
+        }
+
         return response;
     }
 
@@ -183,7 +250,9 @@ public class Bot extends BaseBot {
             if (Strings.isEmpty(token)) {
                 return super.onElementSelectedEvent(elementSelectedEvent);
             } else {
-                taskService.insertClockInToday(getUserId(), Long.valueOf(token));
+                boolean success = taskService.insertClockInToday(getUserId(), Long.valueOf(token));
+
+
             }
 
         }
@@ -253,9 +322,10 @@ public class Bot extends BaseBot {
             Intent intent = getIntent();
             ConfirmationStatus confirmationStatus = intent.getConfirmationStatus();
             if (confirmationStatus == ConfirmationStatus.CONFIRMED) {
-                boolean success = taskService.insertOnceTask(getUserId(), "宝宝", dateUtil.convertDate(onceTaskDateSlot),
+                Task task = taskService.insertOnceTask(getUserId(), Cons.BABY, dateUtil.convertDate(onceTaskDateSlot),
                         dateUtil.convertTime(timeInDayStart), dateUtil.convertTime(timeInDayEnd), taskContent, -1);
-                if (success) {
+                if (task != null) {
+                    setSessionAttribute(Cons.ATTRI_KEY_TASK_ID, task.getId() + "");
                     outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
                     outputSpeech.setText("好的，已经为你制定好计划了");
                     setExpectSpeech(false);

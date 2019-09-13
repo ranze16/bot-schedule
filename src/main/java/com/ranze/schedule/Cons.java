@@ -6,6 +6,8 @@ public final class Cons {
     public static final String ATTRI_KEY_ACTION = "action";
     public static final String ATTRI_SET_NAME = "set_name";
     public static final String ATTRI_CLOCK_IN = "clock_in";
+    public static final String ATTRI_BIND_TASK = "bind_task";
+    public static final String ATTRI_KEY_TASK_ID = "task_id";
 
     public static final byte TASK_ONCE = 1; // 单次任务
     public static final byte TASK_INTERVAL = 2; // 一段时间内的任务
@@ -41,6 +43,15 @@ public final class Cons {
     public static final String TASK_STATE_WAIT_CLOCKED_IN = "待打卡";
 
     public static final String INTENT_CLOCK_IN = "clock_in";
+    public static final String INTENT_BIND_TASK = "clock_in";
 
+    public static final String SLOT_BIND_TASK_TIME_IN_DAY_START = "sys.time1-bind";
+    public static final String SLOT_BIND_TASK_TIME_IN_DAY_END = "sys.time2-bind";
+    public static final String SLOT_BIND_TASK_CONTENT = "sys.wildcard-slot-bind";
+    public static final String SLOT_BIND_TASK_OWNER = "sys.family-member";
+
+    public static final String BABY = "宝贝";
+
+    public static final int POINTS_ONE_CLOCK_IN = 10;
 
 }
