@@ -2,6 +2,7 @@ package com.ranze.schedule.service;
 
 import com.ranze.schedule.Cons;
 import com.ranze.schedule.pojo.Task;
+import com.ranze.schedule.pojo.UserInfo;
 import com.ranze.schedule.util.DateUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +17,8 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class TaskServiceTest {
+    @Autowired
+    UserInfoService userInfoService;
     @Autowired
     DateUtil dateUtil;
     @Autowired
@@ -67,7 +70,8 @@ public class TaskServiceTest {
 
     @Test
     public void insertClockInToday() {
-        taskService.insertClockInToday(userId, 620050546199498752L);
+        UserInfo userInfo = userInfoService.getUserInfo(userId);
+        taskService.insertClockInToday(userInfo, 620050546199498752L);
     }
 
     @Test
