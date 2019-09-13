@@ -53,5 +53,6 @@ public final class Cons {
     public static final String BABY = "宝贝";
 
     public static final int POINTS_ONE_CLOCK_IN = 10;
+    public static final int POINTS_BONUSES_DOUBLE_CLOCK_IN = 10;
 
 }

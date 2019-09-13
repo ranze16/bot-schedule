@@ -3,10 +3,7 @@ package com.ranze.schedule.service;
 import com.ranze.schedule.Cons;
 import com.ranze.schedule.mapper.ClockInMapper;
 import com.ranze.schedule.mapper.TaskMapper;
-import com.ranze.schedule.pojo.ClockIn;
-import com.ranze.schedule.pojo.ClockInExample;
-import com.ranze.schedule.pojo.Task;
-import com.ranze.schedule.pojo.TaskExample;
+import com.ranze.schedule.pojo.*;
 import com.ranze.schedule.util.DateUtil;
 import com.ranze.schedule.util.UniqueIDUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -325,10 +322,10 @@ public class TaskService {
         return taskMapper.deleteByPrimaryKey(taskId) == 1;
     }
 
-    public boolean insertClockInToday(String userId, long taskId) {
-        boolean success = insertClockIn(userId, taskId, new Date(System.currentTimeMillis()));
+    public boolean insertClockInToday(UserInfo userInfo, long taskId) {
+        boolean success = insertClockIn(userInfo.getUserId(), taskId, new Date(System.currentTimeMillis()));
         if (success) {
-            userInfoService.incrementPoints(userInfoService.getUserInfo(userId), Cons.POINTS_ONE_CLOCK_IN);
+            userInfoService.incrementPoints(userInfo, Cons.POINTS_ONE_CLOCK_IN);
         }
         return success;
     }

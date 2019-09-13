@@ -34,6 +34,8 @@ import java.util.List;
 @Slf4j
 public class Bot extends BaseBot {
     @Autowired
+    CachedData cachedData;
+    @Autowired
     DateUtil dateUtil;
     @Autowired
     protected BusinessConfig config;
@@ -62,6 +64,8 @@ public class Bot extends BaseBot {
             setExpectSpeech(true);
             setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_SET_NAME);
         } else {
+            cachedData.userInfoMap.put(getUserId(), userInfo);
+
             String outputSpeechStr = null;
             List<Task> todayTasks = taskService.selectTodayTasks(userInfo.getUserId());
             if (todayTasks.isEmpty()) {
@@ -247,12 +251,33 @@ public class Bot extends BaseBot {
         String action = getSessionAttribute(Cons.ATTRI_KEY_ACTION);
         if (action != null && action.equals(Cons.ATTRI_CLOCK_IN)) {
             String token = elementSelectedEvent.getToken();
+            long taskId = Long.valueOf(token);
+            log.info("打开任务 id: {}", taskId);
             if (Strings.isEmpty(token)) {
                 return super.onElementSelectedEvent(elementSelectedEvent);
             } else {
-                boolean success = taskService.insertClockInToday(getUserId(), Long.valueOf(token));
-
-
+                UserInfo userInfo = cachedData.userInfoMap.get(getUserId());
+                boolean success = taskService.insertClockInToday(userInfo, Long.valueOf(token));
+                if (success) {
+                    String outputSpeechStr = null;
+                    Task task = taskService.selectTaskById(taskId);
+                    Long bindTaskId = task.getBindTaskId();
+                    log.info("任务 id: {}, 绑定的任务 id:{}", task, bindTaskId);
+                    List<Long> clockInTaskIds = taskService.selectClockInTaskIds(getUserId(), dateUtil.today());
+                    if (clockInTaskIds.contains(bindTaskId)) {
+                        boolean increPointsRet = userInfoService.incrementPoints(userInfo, Cons.POINTS_BONUSES_DOUBLE_CLOCK_IN);
+                        if (increPointsRet) {
+                            outputSpeechStr = "太棒了，两个绑定的任务都打卡成功, 额外奖励"
+                                    + Cons.POINTS_BONUSES_DOUBLE_CLOCK_IN
+                                    + "朵爱心哦";
+                        } else {
+                            outputSpeechStr = "太棒了，两个绑定的任务都打卡成功";
+                        }
+                    } else {
+                        outputSpeechStr = "打卡成功，这个任务还有一个绑定的任务没有打卡，两个任务都打卡成功可以获取额外的爱心哦";
+                    }
+                    return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, outputSpeechStr));
+                }
             }
 
         }
