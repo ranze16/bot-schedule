@@ -173,6 +173,19 @@ public class TaskService {
         return ret;
     }
 
+    public List<Task> selectCurrentNearbyTasksWithoutClockIn(String userId, long earlierTimeInMillions) {
+        List<Task> currentNearbyTasks = selectCurrentNearbyTasks(userId, earlierTimeInMillions);
+        List<Long> clockInTaskIds = selectClockInTaskIds(userId, dateUtil.today());
+        List<Task> ret = new ArrayList<>();
+        for (Task task : currentNearbyTasks) {
+            if (!clockInTaskIds.contains(task.getId())) {
+                ret.add(task);
+            }
+
+        }
+        return ret;
+    }
+
     public String getTaskState(Task task, long earlierTimeInMillions) {
         List<Long> clockInTaskIds = selectClockInTaskIds(task.getUserId(), dateUtil.today());
 

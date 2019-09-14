@@ -3,11 +3,12 @@ package com.ranze.schedule.dueros;
 import com.baidu.dueros.data.response.directive.DialogDirective;
 import com.baidu.dueros.nlu.Intent;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
-@JsonTypeName("Dialog.SelectIntent")
+@JsonTypeName("Dialog.SelectSlot")
 public class SelectSlot extends DialogDirective {
     private String slotToSelect;
     private List<Option> options;
@@ -41,7 +42,8 @@ public class SelectSlot extends DialogDirective {
         this.options = options;
     }
 
-    @Slf4j
+    @Getter
+    @Setter
     public static class Option {
         private String type = "KEYWORD";
         private String value;

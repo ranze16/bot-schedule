@@ -220,26 +220,65 @@ public class Bot extends BaseBot {
     }
 
     private Response handleClockInIntent() {
-        List<Task> tasks = taskService.selectCurrentNearbyTasks(getUserId(), Cons.HALF_HOUR_MILLIONS);
+        List<Task> tasks = taskService.selectCurrentNearbyTasksWithoutClockIn(getUserId(), Cons.HALF_HOUR_MILLIONS);
         if (tasks.isEmpty()) {
             TextCard card = new TextCard("当前没有可以打卡的任务哦");
+            setExpectSpeech(false);
             return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "当前没有可以打卡的任务哦"), card);
+        }
+
+        String taskId = getSlot("app.task.id");
+        if (!Strings.isEmpty(taskId) && getIntent().getConfirmationStatus() == ConfirmationStatus.CONFIRMED) {
+            boolean success = taskService.insertClockInToday(cachedData.userInfoMap.get(getUserId()), Long.valueOf(taskId));
+            if (success) {
+                setExpectSpeech(false);
+                return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText,
+                        "打卡成功，增加了" + Cons.POINTS_ONE_CLOCK_IN + "点爱心"));
+            }
         }
         setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_CLOCK_IN);
 
         String outputSpeechStr = null;
+
         ListTemplate2 listTemplate2 = new ListTemplate2();
-        for (Task task : tasks) {
+
+        SelectSlot selectSlot = new SelectSlot();
+        selectSlot.setSlotToSelect("app.task.id");
+        List<SelectSlot.Option> options = new ArrayList<>();
+
+        for (int i = 0; i < tasks.size(); ++i) {
+            Task task = tasks.get(i);
             ListItem listItem = getListItem(task);
             listItem.setToken(task.getId() + "");
             listTemplate2.addListItem(listItem);
+
+            SelectSlot.Option option = new SelectSlot.Option();
+            option.setIndex(i + 1);
+            option.setValue(task.getId() + "");
+
+            options.add(option);
         }
+
+        selectSlot.setOptions(options);
+
         if (tasks.size() == 1) {
-            outputSpeechStr = "请问这是你当前可要打卡的任务，对我说我要打卡";
+            outputSpeechStr = "这是你当前可打卡的任务，确认打卡吗";
+            Slot slot = Slot.newBuilder()
+                    .setValue(tasks.get(0).getId() + "")
+                    .setValues(new ArrayList<>())
+                    .setScore(1)
+                    .setName("app.task.id")
+                    .setConfirmationStatus(ConfirmationStatus.NONE)
+                    .build();
+
+            setSlot(slot);
+            setConfirmIntent();
         } else {
             outputSpeechStr = "你当前有" + tasks.size() + "个任务, 你要打卡第几个呢？";
+            addDirective(selectSlot);
         }
         RenderTemplate renderTemplate = new RenderTemplate(listTemplate2);
+
         this.addDirective(renderTemplate);
         OutputSpeech outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.PlainText, outputSpeechStr);
         return new Response(outputSpeech, null, new Reprompt(outputSpeech));
@@ -267,6 +306,10 @@ public class Bot extends BaseBot {
                     String outputSpeechStr = null;
                     Task task = taskService.selectTaskById(taskId);
                     Long bindTaskId = task.getBindTaskId();
+                    if (bindTaskId <= 0) {
+                        outputSpeechStr = "打卡成功";
+
+                    }
                     log.info("任务 id: {}, 绑定的任务 id:{}", task, bindTaskId);
                     List<Long> clockInTaskIds = taskService.selectClockInTaskIds(getUserId(), dateUtil.today());
                     if (clockInTaskIds.contains(bindTaskId)) {
