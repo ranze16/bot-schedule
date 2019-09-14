@@ -142,7 +142,7 @@ public class TaskService {
 
     @Transactional
     public Task insertBindTask(String owner, Time timeInDayStart, Time timeInDayEnd, String content, Task bindTarget) {
-        Task task = insertTask(bindTarget.getUserId(), Cons.BIND_ATTACHED, owner, bindTarget.getBindTaskId(), bindTarget.getType(),
+        Task task = insertTask(bindTarget.getUserId(), Cons.BIND_ATTACHED, owner, bindTarget.getId(), bindTarget.getType(),
                 bindTarget.getStartDate(), bindTarget.getEndDate(), bindTarget.getExcludeDateType(), bindTarget.getSingleDateTime(),
                 timeInDayStart, timeInDayEnd, content);
 
