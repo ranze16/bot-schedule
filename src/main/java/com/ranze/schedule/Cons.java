@@ -6,8 +6,14 @@ public final class Cons {
     public static final String ATTRI_KEY_ACTION = "action";
     public static final String ATTRI_SET_NAME = "set_name";
     public static final String ATTRI_CLOCK_IN = "clock_in";
+    public static final String ATTRI_CRE_ONCE_TASK = "create_once_task";
+    public static final String ATTRI_CRE_LONG_TASK = "create_long_task";
+    public static final String ATTRI_ONCE_TASK_DATE = "once_task_date";
+    public static final String ATTRI_SELECT_TIME_START = "select_time_start"; // 选择任务执行的开始时间
+    public static final String ATTRI_SELECT_TIME_END = "select_time_end"; // 选择任务执行的结束时间
     public static final String ATTRI_BIND_TASK = "bind_task";
-    public static final String ATTRI_KEY_TASK_ID = "task_id";
+    public static final String ATTRI_KEY_LAST_TASK_ID = "task_id";
+    public static final String ATTRI_TASK_CONTENT = "task_content";
 
     public static final byte TASK_ONCE = 1; // 单次任务
     public static final byte TASK_INTERVAL = 2; // 一段时间内的任务

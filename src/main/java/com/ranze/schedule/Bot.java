@@ -10,12 +10,13 @@ import com.baidu.dueros.data.response.Reprompt;
 import com.baidu.dueros.data.response.card.TextCard;
 import com.baidu.dueros.data.response.directive.display.Hint;
 import com.baidu.dueros.data.response.directive.display.RenderTemplate;
-import com.baidu.dueros.data.response.directive.display.templates.ListItem;
-import com.baidu.dueros.data.response.directive.display.templates.ListTemplate2;
+import com.baidu.dueros.data.response.directive.display.templates.*;
 import com.baidu.dueros.model.Response;
 import com.baidu.dueros.nlu.ConfirmationStatus;
 import com.baidu.dueros.nlu.Intent;
+import com.baidu.dueros.nlu.Slot;
 import com.ranze.schedule.config.BusinessConfig;
+import com.ranze.schedule.dueros.SelectSlot;
 import com.ranze.schedule.pojo.Task;
 import com.ranze.schedule.pojo.UserInfo;
 import com.ranze.schedule.service.TaskService;
@@ -159,7 +160,7 @@ public class Bot extends BaseBot {
         OutputSpeech outputSpeech = new OutputSpeech();
         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
 
-        String taskIdStr = getSessionAttribute(Cons.ATTRI_KEY_TASK_ID);
+        String taskIdStr = getSessionAttribute(Cons.ATTRI_KEY_LAST_TASK_ID);
         if (taskIdStr == null) {
             return response;
         }
@@ -247,9 +248,13 @@ public class Bot extends BaseBot {
 
     @Override
     protected Response onElementSelectedEvent(ElementSelectedEvent elementSelectedEvent) {
+        log.info("Handle onElementSelectedEvent");
 
         String action = getSessionAttribute(Cons.ATTRI_KEY_ACTION);
-        if (action != null && action.equals(Cons.ATTRI_CLOCK_IN)) {
+        if (action == null) {
+            return response;
+        }
+        if (action.equals(Cons.ATTRI_CLOCK_IN)) {
             String token = elementSelectedEvent.getToken();
             long taskId = Long.valueOf(token);
             log.info("打开任务 id: {}", taskId);
@@ -280,6 +285,75 @@ public class Bot extends BaseBot {
                 }
             }
 
+        } else if (action.equals(Cons.ATTRI_CRE_ONCE_TASK)) {
+            System.out.println("time start time start time start time start");
+            String timeInDay = getSessionAttribute(Cons.ATTRI_CRE_ONCE_TASK);
+            log.info("Time in day:{}", timeInDay);
+            if (timeInDay == null) {
+                return response;
+            }
+            if (timeInDay.equals(Cons.ATTRI_SELECT_TIME_START)) {
+                Slot slot = Slot.newBuilder()
+                        .setName("sys.time1")
+                        .setValue(elementSelectedEvent.getToken())
+                        .setConfirmationStatus(ConfirmationStatus.CONFIRMED)
+                        .setScore(1)
+                        .setValues(new ArrayList<>())
+                        .build();
+                System.out.println("000000000000000000");
+                Intent intent = getIntent();
+                System.out.println("intent == null ?" + (intent == null ? "true" : "false"));
+//                setSlot(slot);
+
+                setSessionAttribute(Cons.ATTRI_SELECT_TIME_START, elementSelectedEvent.getToken());
+
+
+                System.out.println("1111111111111111");
+
+                setSessionAttribute(Cons.ATTRI_CRE_ONCE_TASK, Cons.ATTRI_SELECT_TIME_END);
+
+                ListTemplate4 timeListTemplate = getTimeListTemplate();
+                RenderTemplate renderTemplate = new RenderTemplate(timeListTemplate);
+                addDirective(renderTemplate);
+                System.out.println("2222222222");
+
+                return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "下面选择任务的结束时间吧"));
+
+            } else if (timeInDay.equals(Cons.ATTRI_SELECT_TIME_END)) {
+                System.out.println("time end time end time end time end time end");
+                Slot slot = Slot.newBuilder()
+                        .setName("sys.time2")
+                        .setValue(elementSelectedEvent.getToken())
+                        .setConfirmationStatus(ConfirmationStatus.CONFIRMED)
+                        .setScore(1)
+                        .setValues(new ArrayList<>())
+                        .build();
+//                setSlot(slot);
+                setSessionAttribute(Cons.ATTRI_SELECT_TIME_END, elementSelectedEvent.getToken());
+                setSessionAttribute(Cons.ATTRI_CRE_ONCE_TASK, "");
+
+                String taskContent = getSessionAttribute(Cons.ATTRI_TASK_CONTENT);
+                String taskDate = getSessionAttribute(Cons.ATTRI_ONCE_TASK_DATE);
+                String timeInDayStart = getSessionAttribute(Cons.ATTRI_SELECT_TIME_START);
+                String timeInDayEnd = elementSelectedEvent.getToken();
+
+                log.info("Task content: {}", taskContent);
+                log.info("Task date: {}", taskDate);
+                log.info("Task time in day start: {}", timeInDayStart);
+                log.info("Task time in day end: {}", timeInDayEnd);
+
+                Task task = taskService.insertOnceTask(getUserId(), Cons.BABY, dateUtil.convertDate(taskDate), dateUtil.convertTime(timeInDayStart),
+                        dateUtil.convertTime(timeInDayEnd), taskContent, -1);
+
+                if (task != null) {
+                    setSessionAttribute(Cons.ATTRI_KEY_LAST_TASK_ID, task.getId() + "");
+                    return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "好的，任务已经创建成功" +
+                            "如果你想要为这个任务绑定其它任务可以对我说绑定任务"));
+                } else {
+                    return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText,
+                            "哎呀，我遇到点问题"));
+                }
+            }
         }
 
         return super.onElementSelectedEvent(elementSelectedEvent);
@@ -310,69 +384,123 @@ public class Bot extends BaseBot {
             outputSpeech.setText("你想要创建一次性任务还是长期任务呢？");
             response = new Response(outputSpeech);
             return response;
-        }
-
-        if (taskType.equals(Cons.TASK_ONCE_STR)) {
-            if (Strings.isEmpty(onceTaskDateSlot)) {
-                ask(config.getOnceTaskDateSlot());
-                outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                outputSpeech.setText("哪一天执行任务呢，你可以这样说，今天、明天、下周一");
-                response = new Response(outputSpeech);
-                return response;
-            }
-
-            if (Strings.isEmpty(timeInDayStart)) {
-                ask("sys.time1");
-                outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                outputSpeech.setText("你想在几点开始任务呢，你可以这样说，上午10点，下午2点");
-                response = new Response(outputSpeech);
-                return response;
-            }
-            if (Strings.isEmpty(timeInDayEnd)) {
-                ask("sys.time2");
-                outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                outputSpeech.setText("你想在几点结束任务呢，你可以这样说，上午10点，下午2点");
-                response = new Response(outputSpeech);
-                return response;
-            }
-
-            if (Strings.isEmpty(taskContent)) {
-                ask(config.getWildCardSlot());
-                outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                outputSpeech.setText("告诉我你的任务内容吧，例如：背单词、练字等");
-                response = new Response(outputSpeech);
-                return response;
-            }
-
-            Intent intent = getIntent();
-            ConfirmationStatus confirmationStatus = intent.getConfirmationStatus();
-            if (confirmationStatus == ConfirmationStatus.CONFIRMED) {
-                Task task = taskService.insertOnceTask(getUserId(), Cons.BABY, dateUtil.convertDate(onceTaskDateSlot),
-                        dateUtil.convertTime(timeInDayStart), dateUtil.convertTime(timeInDayEnd), taskContent, -1);
-                if (task != null) {
-                    setSessionAttribute(Cons.ATTRI_KEY_TASK_ID, task.getId() + "");
+        } else {
+            if (taskType.equals(Cons.TASK_ONCE_STR)) {
+                if (Strings.isEmpty(taskContent)) {
+                    ask(config.getWildCardSlot());
                     outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                    outputSpeech.setText("好的，已经为你制定好计划了");
-                    setExpectSpeech(false);
-                } else {
-                    outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                    outputSpeech.setText("哎呀，我遇到点问题，没能为你保存任务");
+                    outputSpeech.setText("告诉我你的任务内容吧，例如：背单词、练字等");
+                    response = new Response(outputSpeech);
+                    return response;
                 }
-            } else if (confirmationStatus == ConfirmationStatus.NONE) {
-                setConfirmIntent();
-                outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                outputSpeech.setText("你制定的任务是" + timeInDayStart + "到" + timeInDayEnd + "执行任务" + taskContent + "，确认吗?");
-            } else {
-                outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                outputSpeech.setText("好的，任务已经取消");
-            }
 
-        } else if (taskType.equals(Cons.TASK_LONG_STR)) {
+                if (Strings.isEmpty(onceTaskDateSlot)) {
+                    ask(config.getOnceTaskDateSlot());
+                    outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+                    outputSpeech.setText("哪一天执行任务呢，你可以这样说，今天、明天、后天");
+                    response = new Response(outputSpeech);
+                    return response;
+                }
+
+                setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_CRE_ONCE_TASK);
+                setSessionAttribute(Cons.ATTRI_CRE_ONCE_TASK, Cons.ATTRI_SELECT_TIME_START);
+                setSessionAttribute(Cons.ATTRI_ONCE_TASK_DATE, onceTaskDateSlot);
+                setSessionAttribute(Cons.ATTRI_TASK_CONTENT, taskContent);
+
+                ListTemplate4 listTemplate4 = getTimeListTemplate();
+                RenderTemplate renderTemplate = new RenderTemplate(listTemplate4);
+                addDirective(renderTemplate);
+
+                outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+                outputSpeech.setText("好的，点击屏幕选择任务的开始时间吧");
+                setExpectSpeech(false);
+
+                response = new Response(outputSpeech);
+                return response;
+            } else {
+                setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_CRE_LONG_TASK);
+                return response;
+            }
 
         }
 
-        return new Response(outputSpeech);
+        /**
+         if (taskType.equals(Cons.TASK_ONCE_STR)) {
+         if (Strings.isEmpty(onceTaskDateSlot)) {
+         ask(config.getOnceTaskDateSlot());
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("哪一天执行任务呢，你可以这样说，今天、明天、下周一");
+         response = new Response(outputSpeech);
+         return response;
+         }
 
+         if (Strings.isEmpty(timeInDayStart)) {
+         ask("sys.time1");
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("你想在几点开始任务呢，你可以这样说，上午10点，下午2点");
+         response = new Response(outputSpeech);
+         return response;
+         }
+         if (Strings.isEmpty(timeInDayEnd)) {
+         ask("sys.time2");
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("你想在几点结束任务呢，你可以这样说，上午10点，下午2点");
+         response = new Response(outputSpeech);
+         return response;
+         }
+
+         if (Strings.isEmpty(taskContent)) {
+         ask(config.getWildCardSlot());
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("告诉我你的任务内容吧，例如：背单词、练字等");
+         response = new Response(outputSpeech);
+         return response;
+         }
+
+         Intent intent = getIntent();
+         ConfirmationStatus confirmationStatus = intent.getConfirmationStatus();
+         if (confirmationStatus == ConfirmationStatus.CONFIRMED) {
+         Task task = taskService.insertOnceTask(getUserId(), Cons.BABY, dateUtil.convertDate(onceTaskDateSlot),
+         dateUtil.convertTime(timeInDayStart), dateUtil.convertTime(timeInDayEnd), taskContent, -1);
+         if (task != null) {
+         setSessionAttribute(Cons.ATTRI_KEY_LAST_TASK_ID, task.getId() + "");
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("好的，已经为你制定好计划了");
+         setExpectSpeech(false);
+         } else {
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("哎呀，我遇到点问题，没能为你保存任务");
+         }
+         } else if (confirmationStatus == ConfirmationStatus.NONE) {
+         setConfirmIntent();
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("你制定的任务是" + timeInDayStart + "到" + timeInDayEnd + "执行任务" + taskContent + "，确认吗?");
+         } else {
+         outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+         outputSpeech.setText("好的，任务已经取消");
+         }
+
+         } else if (taskType.equals(Cons.TASK_LONG_STR)) {
+
+         }
+
+         return new Response(outputSpeech);
+         **/
+
+    }
+
+    private ListTemplate4 getTimeListTemplate() {
+        ListTemplate4 listTemplate4 = new ListTemplate4();
+        String timePatternSuffix = ":00:00";
+        for (int i = 8; i <= 18; ++i) {
+            ListItemWithListTemplate4 template4 = new ListItemWithListTemplate4();
+            TextStructure textStructure = new TextStructure(i + "点");
+            template4.setContent(textStructure);
+            String time = i < 10 ? "0" + i : "" + i;
+            template4.setToken(time + timePatternSuffix);
+            listTemplate4.addListItem(template4);
+        }
+        return listTemplate4;
     }
 
     private Response handleDefaultIntent(IntentRequest intentRequest) {
@@ -413,6 +541,13 @@ public class Bot extends BaseBot {
 
     private UserInfo getUserInfo(String userId) {
         return userInfoService.getUserInfo(userId);
+    }
+
+    protected void select(final String slot) {
+        SelectSlot selectSlot = new SelectSlot();
+        selectSlot.setSlotToSelect(slot);
+        selectSlot.setUpdatedIntent(getIntent());
+        addDirective(selectSlot);
     }
 
 }
