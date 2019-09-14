@@ -186,8 +186,24 @@ public class TaskService {
         return ret;
     }
 
+    public List<String> getTaskListStates(List<Task> tasks, long earlierTimeInMillions) {
+        if (tasks == null || tasks.isEmpty()) {
+            return null;
+        }
+        List<Long> clockInTaskIds = selectClockInTaskIds(tasks.get(0).getUserId(), dateUtil.today());
+        List<String> states = new ArrayList<>();
+        for (Task task : tasks) {
+            states.add(getTaskState(task, earlierTimeInMillions, clockInTaskIds));
+        }
+        return states;
+    }
+
     public String getTaskState(Task task, long earlierTimeInMillions) {
         List<Long> clockInTaskIds = selectClockInTaskIds(task.getUserId(), dateUtil.today());
+        return getTaskState(task, earlierTimeInMillions, clockInTaskIds);
+    }
+
+    public String getTaskState(Task task, long earlierTimeInMillions, List<Long> clockInTaskIds) {
 
         // 时区转换 8小时的时差
         long zeroMillions = LocalDateTime.of(LocalDate.now(), LocalTime.MIN)

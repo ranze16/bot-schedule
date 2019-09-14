@@ -56,33 +56,52 @@ public class Bot extends BaseBot {
         log.info("Launch request, req id = {}, user id = {}", launchRequest.getRequestId(), getUserId());
 
         TextCard card = null;
-        OutputSpeech outputSpeech = new OutputSpeech();
 
         UserInfo userInfo = getUserInfo(getUserId());
         if (userInfo == null) {
-            card = new TextCard("宝宝日程可以帮你管理的任务");
-            outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.PlainText, "欢迎来到宝贝日程，先告诉我你的名字吧");
+            BodyTemplate1 template1 = new BodyTemplate1(Cons.APP_NAME, TextStructure.TextType.PlainText,
+                    "宝贝日程表可以帮你记录任务");
+            addRenderTemplateDirective(template1);
+//            template1.setBackgroundImage()
             setExpectSpeech(true);
             setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_SET_NAME);
+            String outputSpeechStr = "欢迎来到宝贝日程表，先告诉我你的名字吧";
+            OutputSpeech speech = getPlainOutputSpeech(outputSpeechStr);
+            return new Response(speech, null, new Reprompt(speech));
         } else {
             cachedData.userInfoMap.put(getUserId(), userInfo);
 
-            String outputSpeechStr = null;
             List<Task> todayTasks = taskService.selectTodayTasks(userInfo.getUserId());
+            String outputSpeechStr = userInfo.getNickName() + "你来啦!你当前有" + userInfo.getPoints() +
+                    "个爱心, 称号是" + userInfo.getTitle() + "。";
             if (todayTasks.isEmpty()) {
                 card = new TextCard("快来创建任务吧");
                 card.addCueWord("创建日程");
-                outputSpeechStr = "你今天没有任务哦";
+                outputSpeechStr += "你今天没有任务哦";
+
             } else {
                 ListTemplate2 listTemplate = new ListTemplate2();
                 listTemplate.setTitle("当前任务");
                 listTemplate.setToken("token");
+
+                int taskNeedsClockInNum = 0;
+                List<String> taskListStates = taskService.getTaskListStates(todayTasks, Cons.HALF_HOUR_MILLIONS);
+                for (String state : taskListStates) {
+                    if (state.equals(Cons.TASK_STATE_NEED_CLOCK_IN) || state.equals(Cons.TASK_STATE_WAIT_CLOCKED_IN)) {
+                        taskNeedsClockInNum++;
+                    }
+                }
                 for (Task task : todayTasks) {
                     ListItem listItem = getListItem(task);
-
                     listTemplate.addListItem(listItem);
                 }
-                outputSpeechStr = "你今天有" + todayTasks.size() + "个任务, 记得打卡哦";
+
+                outputSpeechStr += "你今天有" + todayTasks.size() + "个任务";
+                if (taskNeedsClockInNum == 0) {
+                    outputSpeechStr += "没有需要打卡的啦";
+                } else {
+                    outputSpeechStr += "还有" + taskNeedsClockInNum + "个需要打卡哦";
+                }
 
                 RenderTemplate renderTemplate = new RenderTemplate(listTemplate);
                 this.addDirective(renderTemplate);
@@ -96,14 +115,9 @@ public class Bot extends BaseBot {
 
             // 添加返回的指令
             this.addDirective(hint);
-
-            outputSpeech.setText(outputSpeechStr);
-        }
-        // 构造返回的Response
-        if (card != null) {
-            return new Response(outputSpeech, card, new Reprompt(outputSpeech));
-        } else {
-            return new Response(outputSpeech);
+            setExpectSpeech(false);
+            OutputSpeech speech = getPlainOutputSpeech(outputSpeechStr);
+            return new Response(speech);
         }
     }
 
@@ -593,4 +607,13 @@ public class Bot extends BaseBot {
         addDirective(selectSlot);
     }
 
+
+    private void addRenderTemplateDirective(BaseTemplate template) {
+        RenderTemplate renderTemplate = new RenderTemplate(template);
+        addDirective(renderTemplate);
+    }
+
+    private OutputSpeech getPlainOutputSpeech(String text) {
+        return new OutputSpeech(OutputSpeech.SpeechType.PlainText, text);
+    }
 }

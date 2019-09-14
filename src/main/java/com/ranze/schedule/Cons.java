@@ -1,6 +1,8 @@
 package com.ranze.schedule;
 
 public final class Cons {
+    public static final String APP_NAME = "宝贝日程表";
+
     public static final String DEFAULT_INTENT = "ai.dueros.common.default_intent";
 
     public static final String ATTRI_KEY_ACTION = "action";
