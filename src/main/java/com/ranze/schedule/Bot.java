@@ -37,6 +37,8 @@ import java.util.List;
 @Slf4j
 public class Bot extends BaseBot {
     @Autowired
+    DynamicData dynamicData;
+    @Autowired
     CachedData cachedData;
     @Autowired
     DateUtil dateUtil;
@@ -64,7 +66,7 @@ public class Bot extends BaseBot {
             BodyTemplate1 template1 = new BodyTemplate1(Cons.APP_NAME, TextStructure.TextType.PlainText,
                     "宝贝日程表可以帮你记录任务");
             addRenderTemplateDirective(template1);
-//            template1.setBackgroundImage()
+            template1.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
             setExpectSpeech(true);
             setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_SET_NAME);
             String outputSpeechStr = "欢迎来到宝贝日程表，先告诉我你的名字吧";
@@ -85,6 +87,7 @@ public class Bot extends BaseBot {
                 ListTemplate2 listTemplate = new ListTemplate2();
                 listTemplate.setTitle("当前任务");
                 listTemplate.setToken("token");
+                listTemplate.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
 
                 int taskNeedsClockInNum = 0;
                 List<String> taskListStates = taskService.getTaskListStates(todayTasks, Cons.HALF_HOUR_MILLIONS);
@@ -118,8 +121,12 @@ public class Bot extends BaseBot {
             // 添加返回的指令
             this.addDirective(hint);
             setExpectSpeech(false);
-            OutputSpeech speech = getPlainOutputSpeech(outputSpeechStr);
-            return new Response(speech);
+//            OutputSpeech speech = getPlainOutputSpeech(outputSpeechStr);
+
+//            OutputSpeech outputSpeech = new OutputSpeech(OutputSpeech.SpeechType.SSML, ssml);
+
+            OutputSpeech outputSpeech = getPlainOutputSpeech(outputSpeechStr);
+            return new Response(outputSpeech);
         }
     }
 
@@ -341,7 +348,6 @@ public class Bot extends BaseBot {
                     Long bindTaskId = task.getBindTaskId();
                     if (bindTaskId <= 0) {
                         outputSpeechStr = "打卡成功, 你获得了" + Cons.POINTS_ONE_CLOCK_IN + "点爱心，继续加油哦";
-
                     } else {
                         log.info("任务 id: {}, 绑定的任务 id:{}", task, bindTaskId);
                         List<Long> clockInTaskIds = taskService.selectClockInTaskIds(getUserId(), dateUtil.today());
@@ -358,7 +364,12 @@ public class Bot extends BaseBot {
                             outputSpeechStr = "打卡成功，这个任务还有一个绑定的任务没有打卡，两个任务都打卡成功可以获取额外的爱心哦";
                         }
                     }
-                    return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, outputSpeechStr));
+                    String ssml = "<speak><audio src=\"http://ssml-example.bj.bcebos.com/qingchen.wav\"></audio>，\n"
+                            + outputSpeechStr
+                            + "</speak>";
+
+
+                    return new Response(new OutputSpeech(OutputSpeech.SpeechType.SSML, ssml));
                 }
             }
 
