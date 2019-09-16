@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -75,14 +76,25 @@ public class Bot extends BaseBot {
         } else {
             cachedData.userInfoMap.put(getUserId(), userInfo);
 
+            ArrayList<String> hints = new ArrayList<>();
+            hints.add("创建任务");
+            hints.add("我要打卡");
+            hints.add("删除任务");
+            Hint hint = new Hint(hints);
+            this.addDirective(hint);
+
             List<Task> todayTasks = taskService.selectTodayTasks(userInfo.getUserId());
             String outputSpeechStr = userInfo.getNickName() + "你来啦!你当前有" + userInfo.getPoints() +
                     "个爱心, 称号是" + userInfo.getTitle() + "。";
             if (todayTasks.isEmpty()) {
-                card = new TextCard("快来创建任务吧");
-                card.addCueWord("创建日程");
+//                card = new TextCard("快来创建任务吧");
+//                card.addCueWord("创建日程");
                 outputSpeechStr += "你今天没有任务哦";
-
+                BodyTemplate1 bodyTemplate1 = new BodyTemplate1();
+                bodyTemplate1.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
+                bodyTemplate1.setPlainContent("快来创建任务吧");
+                RenderTemplate renderTemplate = new RenderTemplate(bodyTemplate1);
+                this.addDirective(renderTemplate);
             } else {
                 ListTemplate2 listTemplate = new ListTemplate2();
                 listTemplate.setTitle("当前任务");
@@ -112,14 +124,6 @@ public class Bot extends BaseBot {
                 this.addDirective(renderTemplate);
             }
 
-            ArrayList<String> hints = new ArrayList<>();
-            hints.add("创建任务");
-            hints.add("我要打卡");
-            hints.add("删除任务");
-            Hint hint = new Hint(hints);
-
-            // 添加返回的指令
-            this.addDirective(hint);
             setExpectSpeech(false);
 //            OutputSpeech speech = getPlainOutputSpeech(outputSpeechStr);
 
@@ -201,6 +205,7 @@ public class Bot extends BaseBot {
 
         if (Strings.isEmpty(bindTaskOwner)) {
             ask(Cons.SLOT_BIND_TASK_OWNER);
+            addBodyTemplate1("绑定的任务 - 绑定人", "妈妈、爸爸、奶奶、爷爷、姐姐、哥哥");
             outputSpeech.setText("请问你要绑定谁的任务呢？");
             response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
             return response;
@@ -208,6 +213,7 @@ public class Bot extends BaseBot {
 
         if (Strings.isEmpty(bindTaskContent)) {
             ask(Cons.SLOT_BIND_TASK_CONTENT);
+            addBodyTemplate1("绑定的任务 - 任务内容", "练字、读书、跑步...");
             outputSpeech.setText("你的任务内容是什么呢，例如看书，写日记等");
             response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
             return response;
@@ -218,8 +224,9 @@ public class Bot extends BaseBot {
         setSessionAttribute(Cons.ATTRI_BIND_TASK, Cons.ATTRI_SELECT_TIME_START);
         setSessionAttribute(Cons.ATTRI_TASK_OWNER, getFamilyMember(bindTaskOwner));// "family-member":"妈妈","origin":"妈妈"
         setSessionAttribute(Cons.ATTRI_TASK_CONTENT, bindTaskContent);
-        ListTemplate4 listTemplate4 = getTimeListTemplate();
-        addRenderTemplateDirective(listTemplate4);
+        ListTemplate3 listTemplate3 = getTimeListTemplate(6, 21);
+        listTemplate3.setTitle("绑定的任务 - 开始时间");
+        addRenderTemplateDirective(listTemplate3);
 
         setExpectSpeech(false);
         OutputSpeech speech = getPlainOutputSpeech("下面选择任务的开始时间吧");
@@ -261,9 +268,9 @@ public class Bot extends BaseBot {
     private Response handleClockInIntent() {
         List<Task> tasks = taskService.selectCurrentNearbyTasksWithoutClockIn(getUserId(), Cons.HALF_HOUR_MILLIONS);
         if (tasks.isEmpty()) {
-            TextCard card = new TextCard("当前没有可以打卡的任务哦");
+            addBodyTemplate1("打卡任务", "现在没有可以打卡的任务");
             setExpectSpeech(false);
-            return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "当前没有可以打卡的任务哦"), card);
+            return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "当前没有可以打卡的任务哦"));
         }
 
         String taskId = getSlot("app.task.id");
@@ -271,6 +278,7 @@ public class Bot extends BaseBot {
             boolean success = taskService.insertClockInToday(cachedData.userInfoMap.get(getUserId()), Long.valueOf(taskId));
             if (success) {
                 setExpectSpeech(false);
+                addBodyTemplate1("打卡成功", "你是最棒的");
                 return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText,
                         "打卡成功，增加了" + Cons.POINTS_ONE_CLOCK_IN + "点爱心"));
             }
@@ -280,6 +288,7 @@ public class Bot extends BaseBot {
         String outputSpeechStr = null;
 
         ListTemplate2 listTemplate2 = new ListTemplate2();
+        listTemplate2.setTitle("打卡任务");
 
         SelectSlot selectSlot = new SelectSlot();
         selectSlot.setSlotToSelect("app.task.id");
@@ -388,7 +397,6 @@ public class Bot extends BaseBot {
                         .setScore(1)
                         .setValues(new ArrayList<>())
                         .build();
-                System.out.println("000000000000000000");
                 Intent intent = getIntent();
                 System.out.println("intent == null ?" + (intent == null ? "true" : "false"));
 //                setSlot(slot);
@@ -396,11 +404,14 @@ public class Bot extends BaseBot {
                 setSessionAttribute(Cons.ATTRI_SELECT_TIME_START, elementSelectedEvent.getToken());
 
 
-                System.out.println("1111111111111111");
+                Time time = dateUtil.convertTime(elementSelectedEvent.getToken());
+                int hour = dateUtil.getHour(time);
+                System.out.println("-------------------- hour : " + hour);
 
                 setSessionAttribute(Cons.ATTRI_CRE_ONCE_TASK, Cons.ATTRI_SELECT_TIME_END);
 
-                ListTemplate4 timeListTemplate = getTimeListTemplate();
+                ListTemplate3 timeListTemplate = getTimeListTemplate(hour, 22);
+                timeListTemplate.setTitle("创建任务 - 结束时间");
                 RenderTemplate renderTemplate = new RenderTemplate(timeListTemplate);
                 addDirective(renderTemplate);
                 System.out.println("2222222222");
@@ -436,20 +447,21 @@ public class Bot extends BaseBot {
                 if (task != null) {
                     setSessionAttribute(Cons.ATTRI_KEY_LAST_TASK_ID, task.getId() + "");
 
-                    BodyTemplate1 bodyTemplate1 = new BodyTemplate1("创建的任务", TextStructure.TextType.PlainText,
-                            "日期:" + task.getSingleDateTime() + ", 时间：" + task.getTimeInDayStart() + "~" + task.getTimeInDayEnd()
-                                    + "，内容：" + task.getContent());
-
+//                    BodyTemplate1 bodyTemplate1 = new BodyTemplate1("创建的任务", TextStructure.TextType.PlainText,
+//                            "日期:" + task.getSingleDateTime() + ", 时间：" + task.getTimeInDayStart() + "~" + task.getTimeInDayEnd()
+//                                    + "，内容：" + task.getContent());
 
                     ArrayList<String> hints = new ArrayList<>();
                     hints.add("绑定妈妈的任务");
                     hints.add("绑定爸爸的任务");
                     Hint hint = new Hint(hints);
 
-                    this.addDirective(new RenderTemplate(bodyTemplate1));
+                    addBodyTemplate1("创建的任务", "日期:" + task.getSingleDateTime() + ", 时间：" + task.getTimeInDayStart() + "~" + task.getTimeInDayEnd()
+                            + "，内容：" + task.getContent());
+
                     this.addDirective(hint);
 
-                    return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "好的，任务已经创建成功" +
+                    return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "好的，任务已经创建成功，" +
                             "如果你想要为这个任务绑定其它任务可以对我说绑定任务"));
                 } else {
                     return new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText,
@@ -465,7 +477,11 @@ public class Bot extends BaseBot {
                 setSessionAttribute(Cons.ATTRI_SELECT_TIME_START, elementSelectedEvent.getToken());
                 setSessionAttribute(Cons.ATTRI_BIND_TASK, Cons.ATTRI_SELECT_TIME_END);
 
-                ListTemplate4 timeListTemplate = getTimeListTemplate();
+                Time time = dateUtil.convertTime(elementSelectedEvent.getToken());
+                int hour = dateUtil.getHour(time);
+
+                ListTemplate3 timeListTemplate = getTimeListTemplate(hour, 22);
+                timeListTemplate.setTitle("绑定的任务 - 结束时间");
                 RenderTemplate renderTemplate = new RenderTemplate(timeListTemplate);
                 addDirective(renderTemplate);
 
@@ -520,6 +536,7 @@ public class Bot extends BaseBot {
 
         if (Strings.isEmpty(taskType)) {
             ask(config.getTaskTypeSlot());
+            addBodyTemplate1("创建任务 - 任务类型", "你可以选择一次性任务或者是长期任务");
             outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
             outputSpeech.setText("你想要创建一次性任务还是长期任务呢？");
             response = new Response(outputSpeech);
@@ -529,6 +546,7 @@ public class Bot extends BaseBot {
                 if (Strings.isEmpty(taskContent)) {
                     ask(config.getWildCardSlot());
                     outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+                    addBodyTemplate1("创建任务 - 任务内容", "唱歌、背单词、写日记...");
                     outputSpeech.setText("告诉我你的任务内容吧，例如：背单词、练字等");
                     response = new Response(outputSpeech);
                     return response;
@@ -537,6 +555,7 @@ public class Bot extends BaseBot {
                 if (Strings.isEmpty(onceTaskDateSlot)) {
                     ask(config.getOnceTaskDateSlot());
                     outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+                    addBodyTemplate1("创建任务 - 任务的日期", "今天、明天还是后天?");
                     outputSpeech.setText("哪一天执行任务呢，你可以这样说，今天、明天、后天");
                     response = new Response(outputSpeech);
                     return response;
@@ -547,8 +566,8 @@ public class Bot extends BaseBot {
                 setSessionAttribute(Cons.ATTRI_ONCE_TASK_DATE, onceTaskDateSlot);
                 setSessionAttribute(Cons.ATTRI_TASK_CONTENT, taskContent);
 
-                ListTemplate4 listTemplate4 = getTimeListTemplate();
-                RenderTemplate renderTemplate = new RenderTemplate(listTemplate4);
+                ListTemplate3 listTemplate3 = getTimeListTemplate(6, 22);
+                RenderTemplate renderTemplate = new RenderTemplate(listTemplate3);
                 addDirective(renderTemplate);
 
                 outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
@@ -629,18 +648,28 @@ public class Bot extends BaseBot {
 
     }
 
-    private ListTemplate4 getTimeListTemplate() {
-        ListTemplate4 listTemplate4 = new ListTemplate4();
+    private void addBodyTemplate1(String title, String content) {
+        BodyTemplate1 bodyTemplate1 = new BodyTemplate1();
+        bodyTemplate1.setPlainContent(content);
+        bodyTemplate1.setTitle(title);
+        bodyTemplate1.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
+        addDirective(new RenderTemplate(bodyTemplate1));
+    }
+
+    private ListTemplate3 getTimeListTemplate(int start, int end) {
+        ListTemplate3 listTemplate3 = new ListTemplate3();
+        listTemplate3.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
         String timePatternSuffix = ":00:00";
-        for (int i = 8; i <= 18; ++i) {
-            ListItemWithListTemplate4 template4 = new ListItemWithListTemplate4();
+        for (int i = start; i <= end; ++i) {
+            ListItemWithListTemplate3 template3 = new ListItemWithListTemplate3();
+//            template3.setImage(new ImageStructure());
             TextStructure textStructure = new TextStructure(i + "点");
-            template4.setContent(textStructure);
+            template3.setContent(textStructure);
             String time = i < 10 ? "0" + i : "" + i;
-            template4.setToken(time + timePatternSuffix);
-            listTemplate4.addListItem(template4);
+            template3.setToken(time + timePatternSuffix);
+            listTemplate3.addListItem(template3);
         }
-        return listTemplate4;
+        return listTemplate3;
     }
 
     private Response handleDefaultIntent(IntentRequest intentRequest) {

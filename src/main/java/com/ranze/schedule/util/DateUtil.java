@@ -99,4 +99,10 @@ public class DateUtil {
         return timeFormat.format(date);
     }
 
+    public int getHour(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar.get(Calendar.HOUR_OF_DAY);
+    }
+
 }
