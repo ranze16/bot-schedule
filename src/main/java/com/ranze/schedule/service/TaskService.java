@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -181,8 +182,8 @@ public class TaskService {
             if (!clockInTaskIds.contains(task.getId())) {
                 ret.add(task);
             }
-
         }
+        ret.sort((o1, o2) -> (int) (o1.getTimeInDayStart().getTime() - o2.getTimeInDayStart().getTime()));
         return ret;
     }
 

@@ -79,7 +79,7 @@ public class Bot extends BaseBot {
             ArrayList<String> hints = new ArrayList<>();
             hints.add("创建任务");
             hints.add("我要打卡");
-            hints.add("删除任务");
+            hints.add("查看所有任务");
             Hint hint = new Hint(hints);
             this.addDirective(hint);
 
@@ -140,7 +140,7 @@ public class Bot extends BaseBot {
         Date timeInDayEnd = task.getTimeInDayEnd();
         listItem.setPlainPrimaryText(
                 dateUtil.convertDate(timeInDayStart) + "~" + dateUtil.convertDate(timeInDayEnd))
-                .setPlainSecondaryText(task.getContent())
+                .setPlainSecondaryText(task.getContent() + "[" + task.getBindUser() + "]")
                 .setPlainTertiaryText(taskService.getTaskState(task, Cons.HALF_HOUR_MILLIONS))
                 .setImageUrl("https://skillstore.cdn.bcebos.com/icon/100/c709eed1-c07a-be4a-b242-0b0d8b777041.jpg");
         return listItem;
