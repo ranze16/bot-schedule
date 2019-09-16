@@ -17,6 +17,10 @@ public final class Cons {
     public static final String ATTRI_KEY_LAST_TASK_ID = "task_id";
     public static final String ATTRI_TASK_CONTENT = "task_content";
     public static final String ATTRI_TASK_OWNER = "owner";
+    public static final String ATTRI_TASK_LIMITATION = "task_limitation";
+
+    public static final String CREATE_LONG_TASK = "创建长期任务";
+    public static final String CREATE_ONCE_TASK = "创建一次性任务";
 
     public static final byte TASK_ONCE = 1; // 单次任务
     public static final byte TASK_INTERVAL = 2; // 一段时间内的任务
@@ -58,6 +62,9 @@ public final class Cons {
     public static final String SLOT_BIND_TASK_TIME_IN_DAY_END = "sys.time2-bind";
     public static final String SLOT_BIND_TASK_CONTENT = "sys.wildcard-slot-bind";
     public static final String SLOT_BIND_TASK_OWNER = "sys.family-member";
+    public static final String SLOT_TASK_LIMITATION = "app.task.time_limitation";
+    public static final String SLOT_TASK_IN_DAY_START = "app.task.time_start";
+    public static final String SLOT_TASK_IN_DAY_END = "app.task.time_end";
 
     public static final String BABY = "宝贝";
 

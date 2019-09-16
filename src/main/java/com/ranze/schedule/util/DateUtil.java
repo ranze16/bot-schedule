@@ -69,6 +69,74 @@ public class DateUtil {
         return !isSaturday(date) && !isSunday(date);
     }
 
+    public byte convertDateExclude(String exclude) {
+        switch (exclude) {
+            case "every_monday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_MONDAY;
+            case "every_tuesday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_TUESDAY;
+            case "every_wednesday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_MONDAY;
+            case "every_thursday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_THURSDAY;
+            case "every_friday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_FRIDAY;
+            case "every_saturday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_FRIDAY;
+            case "every_sunday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_SUNDAY;
+            case "every_weekday":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKDAY;
+            case "every_weekend":
+                return Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKEND;
+            case "everyday":
+                return Cons.EXCLUDE_DATE_TYPE_NONE;
+            default:
+                return Cons.EXCLUDE_DATE_TYPE_NONE;
+        }
+    }
+
+    public String convertDateExclude(byte exclude) {
+        String excludeStr = "每天";
+        switch (exclude) {
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_MONDAY:
+                excludeStr = "每周一";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_TUESDAY:
+                excludeStr = "每周二";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_WEDNESDAY:
+                excludeStr = "每周三";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_THURSDAY:
+                excludeStr = "每周四";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_FRIDAY:
+                excludeStr = "每周五";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_SATURDAY:
+                excludeStr = "每周六";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_SUNDAY:
+                excludeStr = "每周日";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKEND:
+                excludeStr = "每周末";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_KEEP_WEEKDAY:
+                excludeStr = "工作日";
+                break;
+            case Cons.EXCLUDE_DATE_TYPE_NONE:
+                excludeStr = "每天";
+                break;
+            default:
+                excludeStr = "每天";
+                break;
+        }
+        return excludeStr;
+
+    }
+
     public java.sql.Date today() {
         return new java.sql.Date(System.currentTimeMillis());
     }

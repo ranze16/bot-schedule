@@ -234,7 +234,7 @@ public class Bot extends BaseBot {
 
         /**
          if (Strings.isEmpty(bindTaskTimeInDayStart)) {
-         ask(Cons.SLOT_BIND_TASK_TIME_IN_DAY_START);
+         ask(Cons.SLOT_TASK_TIME_IN_DAY_START);
          outputSpeech.setText("任务的开始时间是什么呢，例如上午10点，下午2点");
          response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
          return response;
@@ -522,17 +522,20 @@ public class Bot extends BaseBot {
 
         String taskType = getSlot(config.getTaskTypeSlot());
         String timeLimitation = getSlot(config.getTaskLimitationSlot());
-        String timeInDayStart = getSlot(config.getTaskInDayStartTimeSlot());
-        String timeInDayEnd = getSlot(config.getTaskInDayEndTimeSlot());
+        String timeInDayStart = getSlot(Cons.SLOT_TASK_IN_DAY_START);
+        String timeInDayEnd = getSlot(Cons.SLOT_TASK_IN_DAY_END);
         String onceTaskDateSlot = getSlot(config.getOnceTaskDateSlot());
-
         String taskContent = getSlot(config.getWildCardSlot());
+
+        String taskTimeLimitation = getSlot(Cons.SLOT_TASK_LIMITATION);
+
         log.info("task type: {}", taskType);
         log.info("time limitation: {}", timeLimitation);
         log.info("time in day start: {}", timeInDayStart);
         log.info("time in day end: {}", timeInDayEnd);
         log.info("once task date: {}", onceTaskDateSlot);
         log.info("task content: {}", taskContent);
+        log.info("task time limitation: {}", taskTimeLimitation);
 
         if (Strings.isEmpty(taskType)) {
             ask(config.getTaskTypeSlot());
@@ -546,7 +549,7 @@ public class Bot extends BaseBot {
                 if (Strings.isEmpty(taskContent)) {
                     ask(config.getWildCardSlot());
                     outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
-                    addBodyTemplate1("创建任务 - 任务内容", "唱歌、背单词、写日记...");
+                    addBodyTemplate1("创建一次性任务 - 任务内容", "唱歌、背单词、写日记...");
                     outputSpeech.setText("告诉我你的任务内容吧，例如：背单词、练字等");
                     response = new Response(outputSpeech);
                     return response;
@@ -556,8 +559,8 @@ public class Bot extends BaseBot {
                     ask(config.getOnceTaskDateSlot());
                     outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
                     addBodyTemplate1("创建任务 - 任务的日期", "今天、明天还是后天?");
-                    outputSpeech.setText("哪一天执行任务呢，你可以这样说，今天、明天、后天");
-                    response = new Response(outputSpeech);
+                    outputSpeech.setText("好的，哪一天执行任务呢，你可以这样说，今天、明天、后天");
+                    response = new Response(outputSpeech, null, new Reprompt(outputSpeech));
                     return response;
                 }
 
@@ -578,7 +581,73 @@ public class Bot extends BaseBot {
                 return response;
             } else {
                 setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_CRE_LONG_TASK);
-                return response;
+                if (Strings.isEmpty(taskContent)) {
+                    ask(config.getWildCardSlot());
+                    addBodyTemplate1("创建长期任务 - 任务内容", "唱歌、背单词、写日记...");
+
+                    outputSpeech.setType(OutputSpeech.SpeechType.PlainText);
+                    outputSpeech.setText("告诉我你的任务内容吧，例如：背单词、练字等");
+                    response = new Response(outputSpeech);
+                    return response;
+                }
+
+                if (Strings.isEmpty(taskTimeLimitation)) {
+                    ask(Cons.SLOT_TASK_LIMITATION);
+                    addBodyTemplate1("创建长期任务 - 日期选择", "每天/每周一/每周二/每个周末/每个工作日");
+                    OutputSpeech plainOutputSpeech = getPlainOutputSpeech("你的任务是每天执行还是特定的日子呢，你可以说每天，每周一或者是每个周末");
+                    response = new Response(plainOutputSpeech, null, new Reprompt(outputSpeech));
+                    return response;
+                }
+
+
+                if (Strings.isEmpty(timeInDayStart)) {
+                    ask(Cons.SLOT_TASK_IN_DAY_START);
+                    addBodyTemplate1(Cons.CREATE_LONG_TASK + " - 开始时间", "上午8点/下午2点/晚上6点...开始");
+                    OutputSpeech plainOutputSpeech = getPlainOutputSpeech("你想几点钟开始任务呢，例如你可以说上午8点开始、下午2点开始");
+                    response = new Response(plainOutputSpeech, null, new Reprompt(plainOutputSpeech));
+                    return response;
+                }
+
+                if (Strings.isEmpty(timeInDayEnd)) {
+                    ask(Cons.SLOT_TASK_IN_DAY_END);
+                    addBodyTemplate1(Cons.CREATE_LONG_TASK + " - 结束时间", "上午9点/下午3点/晚上6点...结束");
+                    OutputSpeech plainOutputSpeech = getPlainOutputSpeech("你想几点钟结束任务呢，例如你可以说上午9点结束、下午3点结束");
+                    response = new Response(plainOutputSpeech, null, new Reprompt(plainOutputSpeech));
+                    return response;
+                }
+
+                Task task = taskService.insertLongTermTask(getUserId(), Cons.BABY, dateUtil.convertDateExclude(taskTimeLimitation),
+                        dateUtil.convertTime(timeInDayStart), dateUtil.convertTime(timeInDayEnd), taskContent, -1);
+
+                setExpectSpeech(false);
+                if (task != null) {
+                    addBodyTemplate1(Cons.CREATE_LONG_TASK + "成功",
+                            "日期:" + dateUtil.convertDateExclude(task.getExcludeDateType())
+                                    + ", 时间：" + task.getTimeInDayStart() + "~" + task.getTimeInDayEnd()
+                                    + "，内容：" + task.getContent());
+
+                    setSessionAttribute(Cons.ATTRI_KEY_LAST_TASK_ID, task.getId() + "");
+
+                    return new Response(getPlainOutputSpeech("创建任务成功，记得打卡哦, 你还可以为这个任务绑定同类型的家人任务，绑定的任务都完成打卡会获得额外的爱心哦"));
+                } else {
+                    return new Response(getProblemOutputSpeech());
+                }
+
+//                setExpectSpeech(false);
+//
+//                setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_CRE_LONG_TASK);
+//                setSessionAttribute(Cons.ATTRI_CRE_LONG_TASK, Cons.ATTRI_SELECT_TIME_START);
+//                setSessionAttribute(Cons.ATTRI_TASK_LIMITATION, taskTimeLimitation);
+//                setSessionAttribute(Cons.ATTRI_TASK_CONTENT, taskContent);
+//
+//                ListTemplate3 listTemplate3 = getTimeListTemplate(6, 22);
+//                listTemplate3.setTitle(Cons.CREATE_LONG_TASK + " - 开始时间");
+//                RenderTemplate renderTemplate = new RenderTemplate(listTemplate3);
+//                addDirective(renderTemplate);
+//
+//                OutputSpeech plainOutputSpeech = getPlainOutputSpeech("好的，下面告诉我任务的开始时间吧");
+//                response = new Response(plainOutputSpeech);
+//                return response;
             }
 
         }
