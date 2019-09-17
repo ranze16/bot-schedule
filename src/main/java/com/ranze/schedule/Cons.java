@@ -18,6 +18,7 @@ public final class Cons {
     public static final String ATTRI_TASK_CONTENT = "task_content";
     public static final String ATTRI_TASK_OWNER = "owner";
     public static final String ATTRI_TASK_LIMITATION = "task_limitation";
+    public static final String ATTRI_MASK_TASK = "mark_task";
 
     public static final String CREATE_LONG_TASK = "创建长期任务";
     public static final String CREATE_ONCE_TASK = "创建一次性任务";
@@ -60,6 +61,7 @@ public final class Cons {
     public static final String INTENT_BIND_TASK = "bind_task";
     public static final String INTENT_LIST_TASK = "list_task";
     public static final String INTENT_MARK_TASK = "mark_task";
+    public static final String INTENT_LIST_MARK = "list_mark";
 
     public static final String SLOT_BIND_TASK_TIME_IN_DAY_START = "sys.time1-bind";
     public static final String SLOT_BIND_TASK_TIME_IN_DAY_END = "sys.time2-bind";

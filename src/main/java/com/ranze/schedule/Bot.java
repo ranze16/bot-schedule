@@ -31,9 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.Time;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 public class Bot extends BaseBot {
@@ -175,7 +173,8 @@ public class Bot extends BaseBot {
             response = handleListTask();
         } else if (intentName.equals(Cons.INTENT_MARK_TASK)) {
             response = handleMarkTask();
-
+        } else if (intentName.equals(Cons.INTENT_LIST_MARK)) {
+            response = handleListMark();
         } else {
             response = handleDefaultIntent(intentRequest);
         }
@@ -186,11 +185,65 @@ public class Bot extends BaseBot {
         return response;
     }
 
+    private Response handleListMark() {
+        log.info("Handle list mark");
+        List<Task> tasks = taskService.selectMarkedTask(getUserId());
+        ListTemplate2 listTemplate2 = new ListTemplate2();
+        listTemplate2.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
+        for (int i = 0; i < tasks.size(); ++i) {
+            Task task = tasks.get(i);
+            ListItem listItem = new ListItem();
+            String typeStr = task.getType().equals(Cons.TASK_ONCE) ? "[一次性]" : "[长期]";
+            listItem.setPlainPrimaryText(typeStr + dateUtil.getTimeDescription(task.getTimeInDayStart())
+                    + "~" + dateUtil.getTimeDescription(task.getTimeInDayEnd()) + ", " + task.getContent());
+            listItem.setToken(task.getId() + "");
+            listTemplate2.addListItem(listItem);
+
+        }
+        addDirective(new RenderTemplate(listTemplate2));
+        setExpectSpeech(false);
+        return new Response(getPlainOutputSpeech("这些是你已经收藏的任务哦"));
+    }
+
     private Response handleMarkTask() {
         log.info("Handle mark task");
-        String taskListSlot = getSlot("app.task.id");
-        log.info("Task list: {}", taskListSlot);
-        return response;
+        List<Task> tasks = taskService.selectAllTask(getUserId());
+        if (tasks.isEmpty()) {
+            return new Response(getPlainOutputSpeech("你现在没有任务哦"));
+        }
+
+        ListTemplate2 listTemplate2 = new ListTemplate2();
+        listTemplate2.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
+
+        SelectSlot selectSlot = new SelectSlot("app.task.id");
+        List<SelectSlot.Option> options = new ArrayList<>();
+
+        int j = tasks.size() <= 10 ? tasks.size() : 10;
+        for (int i = 0; i < j; ++i) {
+            Task task = tasks.get(i);
+            ListItem listItem = new ListItem();
+            String typeStr = task.getType().equals(Cons.TASK_ONCE) ? "[一次性]" : "[长期]";
+            listItem.setPlainPrimaryText(typeStr + dateUtil.getTimeDescription(task.getTimeInDayStart())
+                    + "~" + dateUtil.getTimeDescription(task.getTimeInDayEnd()) + ", " + task.getContent());
+            listItem.setToken(task.getId() + "");
+            listTemplate2.addListItem(listItem);
+
+            SelectSlot.Option option = new SelectSlot.Option();
+            option.setIndex(i + 1);
+            option.setValue(tasks.get(i).getId() + "");
+            options.add(option);
+        }
+
+        selectSlot.setOptions(options);
+        addDirective(selectSlot);
+
+        addDirective(new RenderTemplate(listTemplate2));
+
+        setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_MASK_TASK);
+
+        setExpectSpeech(true);
+        OutputSpeech plainOutputSpeech = getPlainOutputSpeech("这是你最近的任务，你要收藏第几个呢？");
+        return new Response(plainOutputSpeech, null, new Reprompt(plainOutputSpeech));
     }
 
     private Response handleListTask() {
@@ -602,6 +655,18 @@ public class Bot extends BaseBot {
                     return new Response(getProblemOutputSpeech());
                 }
             }
+        } else if (action.equals(Cons.ATTRI_MASK_TASK)) {
+            setExpectSpeech(false);
+            String token = elementSelectedEvent.getToken();
+            long taskId = Long.valueOf(token);
+            boolean success = taskService.markTask(taskId);
+            if (success) {
+                addHints(Collections.singletonList("查看收藏的任务"));
+                OutputSpeech plainOutputSpeech = getPlainOutputSpeech("收藏成功啦，以后可以在收藏任务中查看哦");
+                return new Response(plainOutputSpeech);
+            } else {
+                return new Response(getProblemOutputSpeech());
+            }
         }
 
         return super.onElementSelectedEvent(elementSelectedEvent);
@@ -910,4 +975,15 @@ public class Bot extends BaseBot {
         }
         return "家长";
     }
+
+    private void addHints(List<String> hints) {
+        ArrayList<String> hintList = new ArrayList<>();
+        for (String hint : hints) {
+            hintList.add(hint);
+            hintList.add(hint);
+        }
+        Hint hint = new Hint(hintList);
+        addDirective(hint);
+    }
 }
+
