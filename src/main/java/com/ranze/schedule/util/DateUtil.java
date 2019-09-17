@@ -173,4 +173,15 @@ public class DateUtil {
         return calendar.get(Calendar.HOUR_OF_DAY);
     }
 
+    public String getTimeDescription(Date date) {
+        int hour = getHour(date);
+        if (hour < 12) {
+            return "上午" + hour + "点";
+        } else if (hour == 12) {
+            return "中午12点";
+        } else {
+            return "下午" + (hour - 12) + "点";
+        }
+    }
+
 }

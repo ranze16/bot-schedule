@@ -337,7 +337,9 @@ public class TaskService {
         TaskExample.Criteria criteria = taskExample.createCriteria();
         criteria.andUserIdEqualTo(userId);
         criteria.andMarkedEqualTo(Cons.BYTE_1);
-        return taskMapper.selectByExample(taskExample);
+        List<Task> tasks = taskMapper.selectByExample(taskExample);
+        tasks.sort((o1, o2) -> (int) (o1.getTimeInDayStart().getTime() - o2.getTimeInDayStart().getTime()));
+        return tasks;
     }
 
     public List<Task> selectAllTask(String userId) {
@@ -345,7 +347,9 @@ public class TaskService {
         TaskExample.Criteria criteria = taskExample.createCriteria();
         criteria.andUserIdEqualTo(userId);
 
-        return taskMapper.selectByExample(taskExample);
+        List<Task> tasks = taskMapper.selectByExample(taskExample);
+        tasks.sort((o1, o2) -> (int) (o1.getTimeInDayStart().getTime() - o2.getTimeInDayStart().getTime()));
+        return tasks;
     }
 
     public boolean deleteTask(long taskId) {

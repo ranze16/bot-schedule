@@ -79,7 +79,7 @@ public class Bot extends BaseBot {
             ArrayList<String> hints = new ArrayList<>();
             hints.add("创建任务");
             hints.add("我要打卡");
-            hints.add("查看所有任务");
+            hints.add("查看最近的任务");
             Hint hint = new Hint(hints);
             this.addDirective(hint);
 
@@ -171,6 +171,11 @@ public class Bot extends BaseBot {
             response = handleClockInIntent();
         } else if (intentName.equals(Cons.INTENT_BIND_TASK)) {
             response = handleBindTask();
+        } else if (intentName.equals(Cons.INTENT_LIST_TASK)) {
+            response = handleListTask();
+        } else if (intentName.equals(Cons.INTENT_MARK_TASK)) {
+            response = handleMarkTask();
+
         } else {
             response = handleDefaultIntent(intentRequest);
         }
@@ -179,6 +184,53 @@ public class Bot extends BaseBot {
             response = new Response(new OutputSpeech(OutputSpeech.SpeechType.PlainText, "我听不懂呢"));
         }
         return response;
+    }
+
+    private Response handleMarkTask() {
+        log.info("Handle mark task");
+        String taskListSlot = getSlot("app.task.id");
+        log.info("Task list: {}", taskListSlot);
+        return response;
+    }
+
+    private Response handleListTask() {
+        List<Task> tasks = taskService.selectAllTask(getUserId());
+        if (tasks.isEmpty()) {
+            return new Response(getPlainOutputSpeech("你现在没有任务哦"));
+        }
+
+        int j = tasks.size() <= 10 ? tasks.size() : 10;
+        ListTemplate2 listTemplate2 = new ListTemplate2();
+        listTemplate2.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
+
+//        SelectSlot selectSlot = new SelectSlot();
+//        selectSlot.setSlotToSelect("app.task.list");
+//        List<SelectSlot.Option> options = new ArrayList<>();
+
+        for (int i = 0; i < j; ++i) {
+//            ListItem listItem = getListItem(tasks.get(i));
+
+            Task task = tasks.get(i);
+            ListItem listItem = new ListItem();
+            String typeStr = task.getType().equals(Cons.TASK_ONCE) ? "[一次性]" : "[长期]";
+            listItem.setPlainPrimaryText(typeStr + dateUtil.getTimeDescription(task.getTimeInDayStart())
+                    + "~" + dateUtil.getTimeDescription(task.getTimeInDayEnd()) + ", " + task.getContent());
+            listItem.setAnchorWord("anchor");
+
+            listItem.setToken(tasks.get(i).getId() + "");
+            listTemplate2.addListItem(listItem);
+//            SelectSlot.Option option = new SelectSlot.Option();
+//            option.setIndex(i + 1);
+//            option.setValue(tasks.get(i).getId() + "");
+//            options.add(option);
+        }
+//        selectSlot.setOptions(options);
+//        addDirective(selectSlot);
+
+        setExpectSpeech(false);
+        addRenderTemplateDirective(listTemplate2);
+        OutputSpeech plainOutputSpeech = getPlainOutputSpeech("这是你最近的" + j + "个任务");
+        return new Response(plainOutputSpeech);
     }
 
     private Response handleBindTask() {

@@ -58,6 +58,8 @@ public final class Cons {
 
     public static final String INTENT_CLOCK_IN = "clock_in";
     public static final String INTENT_BIND_TASK = "bind_task";
+    public static final String INTENT_LIST_TASK = "list_task";
+    public static final String INTENT_MARK_TASK = "mark_task";
 
     public static final String SLOT_BIND_TASK_TIME_IN_DAY_START = "sys.time1-bind";
     public static final String SLOT_BIND_TASK_TIME_IN_DAY_END = "sys.time2-bind";
