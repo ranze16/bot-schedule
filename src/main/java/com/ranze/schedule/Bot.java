@@ -175,6 +175,8 @@ public class Bot extends BaseBot {
             response = handleMarkTask();
         } else if (intentName.equals(Cons.INTENT_LIST_MARK)) {
             response = handleListMark();
+        } else if (intentName.equals(Cons.INTENT_DELETE_TASK)) {
+            response = handleDeleteTask();
         } else {
             response = handleDefaultIntent(intentRequest);
         }
@@ -185,34 +187,27 @@ public class Bot extends BaseBot {
         return response;
     }
 
-    private Response handleListMark() {
-        log.info("Handle list mark");
-        List<Task> tasks = taskService.selectMarkedTask(getUserId());
-        ListTemplate2 listTemplate2 = new ListTemplate2();
-        listTemplate2.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
-        for (int i = 0; i < tasks.size(); ++i) {
-            Task task = tasks.get(i);
-            ListItem listItem = new ListItem();
-            String typeStr = task.getType().equals(Cons.TASK_ONCE) ? "[一次性]" : "[长期]";
-            listItem.setPlainPrimaryText(typeStr + dateUtil.getTimeDescription(task.getTimeInDayStart())
-                    + "~" + dateUtil.getTimeDescription(task.getTimeInDayEnd()) + ", " + task.getContent());
-            listItem.setToken(task.getId() + "");
-            listTemplate2.addListItem(listItem);
-
-        }
-        addDirective(new RenderTemplate(listTemplate2));
-        setExpectSpeech(false);
-        return new Response(getPlainOutputSpeech("这些是你已经收藏的任务哦"));
-    }
-
-    private Response handleMarkTask() {
-        log.info("Handle mark task");
+    private Response handleDeleteTask() {
+        log.info("Handle delete task");
         List<Task> tasks = taskService.selectAllTask(getUserId());
         if (tasks.isEmpty()) {
             return new Response(getPlainOutputSpeech("你现在没有任务哦"));
         }
 
+        showTaskListWithSetSlot(Cons.RECENTLY_TASK, tasks);
+
+        setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_DELETE_MASK);
+
+        setExpectSpeech(true);
+        OutputSpeech plainOutputSpeech = getPlainOutputSpeech("这是你最近的任务，你要删除第几个呢？");
+        return new Response(plainOutputSpeech, null, new Reprompt(plainOutputSpeech));
+
+    }
+
+    private void showTaskListWithSetSlot(String title, List<Task> tasks) {
         ListTemplate2 listTemplate2 = new ListTemplate2();
+        listTemplate2.setTitle(title);
+
         listTemplate2.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
 
         SelectSlot selectSlot = new SelectSlot("app.task.id");
@@ -238,6 +233,41 @@ public class Bot extends BaseBot {
         addDirective(selectSlot);
 
         addDirective(new RenderTemplate(listTemplate2));
+    }
+
+    private Response handleListMark() {
+        log.info("Handle list mark");
+        showMarkedTasks();
+        setExpectSpeech(false);
+        return new Response(getPlainOutputSpeech("这些是你已经收藏的任务哦"));
+    }
+
+    private void showMarkedTasks() {
+        List<Task> tasks = taskService.selectMarkedTask(getUserId());
+        ListTemplate2 listTemplate2 = new ListTemplate2();
+        listTemplate2.setTitle(Cons.MARKED_TASK);
+        listTemplate2.setBackgroundImageUrl(dynamicData.getHomeBackgroundUrl());
+        for (int i = 0; i < tasks.size(); ++i) {
+            Task task = tasks.get(i);
+            ListItem listItem = new ListItem();
+            String typeStr = task.getType().equals(Cons.TASK_ONCE) ? "[一次性]" : "[长期]";
+            listItem.setPlainPrimaryText(typeStr + dateUtil.getTimeDescription(task.getTimeInDayStart())
+                    + "~" + dateUtil.getTimeDescription(task.getTimeInDayEnd()) + ", " + task.getContent());
+            listItem.setToken(task.getId() + "");
+            listTemplate2.addListItem(listItem);
+
+        }
+        addDirective(new RenderTemplate(listTemplate2));
+    }
+
+    private Response handleMarkTask() {
+        log.info("Handle mark task");
+        List<Task> tasks = taskService.selectAllTask(getUserId());
+        if (tasks.isEmpty()) {
+            return new Response(getPlainOutputSpeech("你现在没有任务哦"));
+        }
+
+        showTaskListWithSetSlot(Cons.MASK_TASK, tasks);
 
         setSessionAttribute(Cons.ATTRI_KEY_ACTION, Cons.ATTRI_MASK_TASK);
 
@@ -663,10 +693,25 @@ public class Bot extends BaseBot {
             if (success) {
                 addHints(Collections.singletonList("查看收藏的任务"));
                 OutputSpeech plainOutputSpeech = getPlainOutputSpeech("收藏成功啦，以后可以在收藏任务中查看哦");
+                showMarkedTasks();
                 return new Response(plainOutputSpeech);
             } else {
                 return new Response(getProblemOutputSpeech());
             }
+        } else if (action.equals(Cons.ATTRI_DELETE_MASK)) {
+            setExpectSpeech(false);
+            String token = elementSelectedEvent.getToken();
+            long taskId = Long.valueOf(token);
+            boolean success = taskService.deleteTask(taskId);
+            if (success) {
+                addHints(Collections.singletonList("创建任务"));
+                List<Task> tasks = taskService.selectAllTask(getUserId());
+                showTaskListWithSetSlot(Cons.RECENTLY_TASK, tasks);
+                return new Response(getPlainOutputSpeech("任务删除成功，可以创建其它任务哦"));
+            } else {
+                return new Response(getProblemOutputSpeech());
+            }
+
         }
 
         return super.onElementSelectedEvent(elementSelectedEvent);
