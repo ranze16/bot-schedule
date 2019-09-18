@@ -140,7 +140,7 @@ public class Bot extends BaseBot {
                 dateUtil.convertDate(timeInDayStart) + "~" + dateUtil.convertDate(timeInDayEnd))
                 .setPlainSecondaryText(task.getContent() + "[" + task.getBindUser() + "]")
                 .setPlainTertiaryText(taskService.getTaskState(task, Cons.HALF_HOUR_MILLIONS))
-                .setImageUrl("https://skillstore.cdn.bcebos.com/icon/100/c709eed1-c07a-be4a-b242-0b0d8b777041.jpg");
+                .setImageUrl(dynamicData.getTaskItem());
         return listItem;
     }
 
@@ -487,7 +487,7 @@ public class Bot extends BaseBot {
         selectSlot.setOptions(options);
 
         if (tasks.size() == 1) {
-            outputSpeechStr = "这是你当前可打卡的任务，确认打卡吗";
+            outputSpeechStr = "这是你当前待打卡的任务，确认打卡吗";
             Slot slot = Slot.newBuilder()
                     .setValue(tasks.get(0).getId() + "")
                     .setValues(new ArrayList<>())
