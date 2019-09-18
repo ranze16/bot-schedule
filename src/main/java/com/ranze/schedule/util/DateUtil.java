@@ -154,6 +154,7 @@ public class DateUtil {
         return null;
     }
 
+
     public Time convertTime(String time) {
         try {
             return new Time(timeFormat.parse(time).getTime());
@@ -165,6 +166,11 @@ public class DateUtil {
 
     public String convertDate(Date date) {
         return timeFormat.format(date);
+    }
+
+    public String getDateDescription(Date date) {
+        String format = dateFormat.format(date);
+        return format;
     }
 
     public int getHour(Date date) {
